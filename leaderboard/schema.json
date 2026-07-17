@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DeepEE Public Results",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "total_runs",
+    "total_publishable_runs",
+    "total_first_attempts",
+    "by_suite",
+    "by_agent",
+    "runs"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "generated_at": {"type": ["string", "null"]},
+    "total_runs": {"type": "integer", "minimum": 0},
+    "total_publishable_runs": {"type": "integer", "minimum": 0},
+    "total_first_attempts": {"type": "integer", "minimum": 0},
+    "by_suite": {"type": "object"},
+    "by_agent": {"type": "object"},
+    "runs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "task_id",
+          "suite",
+          "agent",
+          "score",
+          "passed",
+          "publishable",
+          "attempt_index",
+          "counts_for_pass_at_1",
+          "hashes",
+          "benchmark_task_ids",
+          "agent_config_hash",
+          "agent_container_image_id",
+          "result_file"
+        ],
+        "properties": {
+          "task_id": {"type": "string"},
+          "suite": {"type": "string"},
+          "agent": {"type": "object"},
+          "score": {"enum": [0, 1, 0.0, 1.0]},
+          "passed": {"type": "boolean"},
+          "publishable": {"type": "boolean"},
+          "attempt_index": {"type": ["integer", "null"], "minimum": 1},
+          "counts_for_pass_at_1": {"type": "boolean"},
+          "benchmark_task_ids": {
+            "type": "array",
+            "items": {"type": "string"},
+            "uniqueItems": true
+          },
+          "agent_config_hash": {"type": ["string", "null"]},
+          "agent_container_image_id": {"type": ["string", "null"]},
+          "hashes": {
+            "type": "object",
+            "required": ["task", "benchmark", "submission"],
+            "properties": {
+              "task": {"type": "string"},
+              "benchmark": {"type": "string"},
+              "submission": {"type": ["string", "null"]},
+              "artifacts": {"type": ["string", "null"]}
+            }
+          },
+          "evidence_archive": {"type": "object"},
+          "result_file": {"type": "string"}
+        }
+      }
+    }
+  }
+}
