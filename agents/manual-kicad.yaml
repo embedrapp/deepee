@@ -1,0 +1,12 @@
+id: manual-kicad
+display_name: External agent using KiCad
+system: external
+model: user-supplied
+effort: user-supplied
+tool_profile: deepee-kicad-toolchain
+context_file: agents/KICAD_CONTEXT.md
+runner:
+  type: manual
+  command: null
+metadata:
+  notes: Copy the completed files into the prepared run directory, then verify it.

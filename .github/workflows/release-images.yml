@@ -1,0 +1,57 @@
+name: release-images
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -e .
+      - name: Require the tag to match the benchmark release
+        run: |
+          version="$(python -c 'import yaml; print(yaml.safe_load(open("benchmark.yaml"))["version"])')"
+          test "$GITHUB_REF_NAME" = "v${version}"
+      - run: python -m unittest discover -s tests -v
+      - run: docker buildx build --load --pull=false --platform linux/amd64 --target agent --tag deepee-agent:1.1.0 --file docker/Dockerfile .
+      - run: docker buildx build --load --pull=false --platform linux/amd64 --target verifier --tag deepee-verifier:1.1.0 --file docker/Dockerfile .
+      - run: make image-smoke AGENT_IMAGE=deepee-agent:1.1.0 VERIFIER_IMAGE=deepee-verifier:1.1.0
+      - run: python -m validation.reference --container-image deepee-verifier:1.1.0
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Resolve image names
+        shell: bash
+        run: |
+          repository="${GITHUB_REPOSITORY,,}"
+          version="${GITHUB_REF_NAME#v}"
+          echo "AGENT_IMAGE=ghcr.io/${repository}-agent:${version}" >> "$GITHUB_ENV"
+          echo "VERIFIER_IMAGE=ghcr.io/${repository}-verifier:${version}" >> "$GITHUB_ENV"
+      - name: Publish agent image
+        run: |
+          docker tag deepee-agent:1.1.0 "$AGENT_IMAGE"
+          docker push "$AGENT_IMAGE"
+      - name: Publish verifier image
+        run: |
+          docker tag deepee-verifier:1.1.0 "$VERIFIER_IMAGE"
+          docker push "$VERIFIER_IMAGE"
+      - name: Record immutable digests
+        run: |
+          docker buildx imagetools inspect "$AGENT_IMAGE" --format '{{json .Manifest}}' > agent-image-manifest.json
+          docker buildx imagetools inspect "$VERIFIER_IMAGE" --format '{{json .Manifest}}' > verifier-image-manifest.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deepee-image-manifests-${{ github.ref_name }}
+          path: |
+            agent-image-manifest.json
+            verifier-image-manifest.json

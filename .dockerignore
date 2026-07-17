@@ -1,0 +1,14 @@
+.git
+.github
+.venv
+__pycache__
+*.pyc
+build
+dist
+docs
+harness
+leaderboard
+results
+runs
+tests
+validation

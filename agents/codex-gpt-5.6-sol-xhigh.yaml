@@ -1,0 +1,66 @@
+id: codex-gpt-5.6-sol-xhigh
+display_name: Codex + GPT-5.6 Sol xhigh
+system: codex
+model: gpt-5.6-sol
+effort: xhigh
+tool_profile: deepee-kicad-toolchain
+context_file: agents/KICAD_CONTEXT.md
+runner:
+  type: command
+  output_format: jsonl
+  stdin: "{prompt_bundle}"
+  container:
+    engine: docker
+    image: deepee-agent:1.1.0
+    verification_image: deepee-verifier:1.1.0
+    workdir: /work
+    network: deepee-agent-internal
+    cpus: 4
+    memory: 8g
+    pids_limit: 512
+    user: root
+    mount_codex_home: false
+    mount_codex_auth: false
+    required_env: [CODEX_API_KEY]
+    pass_env: [CODEX_API_KEY]
+    env:
+      HTTPS_PROXY: http://deepee-api-egress:3128
+      https_proxy: http://deepee-api-egress:3128
+      HTTP_PROXY: http://deepee-api-egress:3128
+      http_proxy: http://deepee-api-egress:3128
+      NO_PROXY: ""
+      no_proxy: ""
+  command:
+    - codex
+    - exec
+    - --model
+    - gpt-5.6-sol
+    - --config
+    - 'model_reasoning_effort="xhigh"'
+    - --sandbox
+    - workspace-write
+    - --ephemeral
+    - --ignore-user-config
+    - --ignore-rules
+    - --skip-git-repo-check
+    - --json
+    - --cd
+    - "{run_dir}"
+    - "-"
+  preflight_command:
+    - codex
+    - exec
+    - --model
+    - gpt-5.6-sol
+    - --config
+    - 'model_reasoning_effort="xhigh"'
+    - --sandbox
+    - workspace-write
+    - --ephemeral
+    - --ignore-user-config
+    - --ignore-rules
+    - --json
+    - --help
+metadata:
+  model_source: https://developers.openai.com/api/docs/guides/latest-model.md
+  authoring_policy: Submit native KiCad 10 files for schematic and PCB tasks.
