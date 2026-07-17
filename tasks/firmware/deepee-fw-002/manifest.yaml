@@ -1,0 +1,32 @@
+id: deepee-fw-002
+suite: firmware
+difficulty: medium
+timeout_minutes: 45
+required_tools: [gcc, pio]
+submission_paths: [artifacts/firmware/src/sht3x_decode.c]
+required_artifacts:
+  - {path: artifacts/firmware/platformio.ini, kind: file}
+  - {path: artifacts/firmware/include/sht3x_decode.h, kind: file}
+  - {path: artifacts/firmware/src/sht3x_decode.c, kind: file}
+  - {path: artifacts/firmware/src/main.cpp, kind: file}
+checks:
+  - type: artifact_presence
+    name: sht3x_project_complete
+  - type: starter_integrity
+    name: sht3x_integration_unchanged
+    protected_globs:
+      - artifacts/firmware/include/sht3x_decode.h
+      - artifacts/firmware/src/main.cpp
+      - artifacts/firmware/platformio.ini
+  - type: c_unit_tests
+    name: sht3x_crc_and_conversion
+    sources: [artifacts/firmware/src/sht3x_decode.c]
+    test_sources: [verifier/test_sht3x_decode.c]
+    include_dirs: [artifacts/firmware/include]
+  - type: firmware_build
+    name: sht3x_esp32_s2_builds
+    root: artifacts/firmware
+    allowed_build_systems: [platformio]
+    required_files: [platformio.ini, src/main.cpp, src/sht3x_decode.c, include/sht3x_decode.h]
+    output_globs: [.pio/build/**/*.elf]
+    timeout_seconds: 600

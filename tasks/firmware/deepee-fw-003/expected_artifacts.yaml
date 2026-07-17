@@ -1,0 +1,5 @@
+required:
+  - artifacts/firmware/include/bme280_temperature.h
+  - artifacts/firmware/src/bme280_temperature.c
+  - artifacts/firmware/src/main.cpp
+  - artifacts/firmware/platformio.ini

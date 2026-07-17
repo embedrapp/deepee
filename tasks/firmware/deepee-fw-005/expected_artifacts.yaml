@@ -1,0 +1,5 @@
+required:
+  - artifacts/firmware/include/mcp9808_decode.h
+  - artifacts/firmware/src/mcp9808_decode.c
+  - artifacts/firmware/src/main.cpp
+  - artifacts/firmware/platformio.ini

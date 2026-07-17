@@ -1,0 +1,5 @@
+required:
+  - artifacts/firmware/include/i2c_recovery.h
+  - artifacts/firmware/src/i2c_recovery.c
+  - artifacts/firmware/src/main.cpp
+  - artifacts/firmware/platformio.ini

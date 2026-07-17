@@ -1,0 +1,32 @@
+id: deepee-fw-001
+suite: firmware
+difficulty: medium
+timeout_minutes: 45
+required_tools: [gcc, pio]
+submission_paths: [artifacts/firmware/src/i2c_recovery.c]
+required_artifacts:
+  - {path: artifacts/firmware/platformio.ini, kind: file}
+  - {path: artifacts/firmware/include/i2c_recovery.h, kind: file}
+  - {path: artifacts/firmware/src/i2c_recovery.c, kind: file}
+  - {path: artifacts/firmware/src/main.cpp, kind: file}
+checks:
+  - type: artifact_presence
+    name: firmware_project_complete
+  - type: starter_integrity
+    name: esp32_integration_unchanged
+    protected_globs:
+      - artifacts/firmware/include/i2c_recovery.h
+      - artifacts/firmware/src/main.cpp
+      - artifacts/firmware/platformio.ini
+  - type: c_unit_tests
+    name: i2c_recovery_policy
+    sources: [artifacts/firmware/src/i2c_recovery.c]
+    test_sources: [verifier/test_i2c_recovery.c]
+    include_dirs: [artifacts/firmware/include]
+  - type: firmware_build
+    name: esp32_s2_firmware_builds
+    root: artifacts/firmware
+    allowed_build_systems: [platformio]
+    required_files: [platformio.ini, src/main.cpp, src/i2c_recovery.c, include/i2c_recovery.h]
+    output_globs: [.pio/build/**/*.elf]
+    timeout_seconds: 600

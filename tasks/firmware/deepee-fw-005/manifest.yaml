@@ -1,0 +1,32 @@
+id: deepee-fw-005
+suite: firmware
+difficulty: medium
+timeout_minutes: 45
+required_tools: [gcc, pio]
+submission_paths: [artifacts/firmware/src/mcp9808_decode.c]
+required_artifacts:
+  - {path: artifacts/firmware/platformio.ini, kind: file}
+  - {path: artifacts/firmware/include/mcp9808_decode.h, kind: file}
+  - {path: artifacts/firmware/src/mcp9808_decode.c, kind: file}
+  - {path: artifacts/firmware/src/main.cpp, kind: file}
+checks:
+  - type: artifact_presence
+    name: mcp9808_project_complete
+  - type: starter_integrity
+    name: mcp9808_integration_unchanged
+    protected_globs:
+      - artifacts/firmware/include/mcp9808_decode.h
+      - artifacts/firmware/src/main.cpp
+      - artifacts/firmware/platformio.ini
+  - type: c_unit_tests
+    name: mcp9808_signed_temperature_decode
+    sources: [artifacts/firmware/src/mcp9808_decode.c]
+    test_sources: [verifier/test_mcp9808_decode.c]
+    include_dirs: [artifacts/firmware/include]
+  - type: firmware_build
+    name: mcp9808_esp32_s2_builds
+    root: artifacts/firmware
+    allowed_build_systems: [platformio]
+    required_files: [platformio.ini, src/main.cpp, src/mcp9808_decode.c, include/mcp9808_decode.h]
+    output_globs: [.pio/build/**/*.elf]
+    timeout_seconds: 600

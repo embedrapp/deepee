@@ -1,0 +1,5 @@
+required:
+  - artifacts/firmware/include/sht3x_decode.h
+  - artifacts/firmware/src/sht3x_decode.c
+  - artifacts/firmware/src/main.cpp
+  - artifacts/firmware/platformio.ini

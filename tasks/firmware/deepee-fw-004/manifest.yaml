@@ -1,0 +1,32 @@
+id: deepee-fw-004
+suite: firmware
+difficulty: medium
+timeout_minutes: 45
+required_tools: [gcc, pio]
+submission_paths: [artifacts/firmware/src/modbus_crc.c]
+required_artifacts:
+  - {path: artifacts/firmware/platformio.ini, kind: file}
+  - {path: artifacts/firmware/include/modbus_crc.h, kind: file}
+  - {path: artifacts/firmware/src/modbus_crc.c, kind: file}
+  - {path: artifacts/firmware/src/main.cpp, kind: file}
+checks:
+  - type: artifact_presence
+    name: modbus_project_complete
+  - type: starter_integrity
+    name: modbus_integration_unchanged
+    protected_globs:
+      - artifacts/firmware/include/modbus_crc.h
+      - artifacts/firmware/src/main.cpp
+      - artifacts/firmware/platformio.ini
+  - type: c_unit_tests
+    name: modbus_rtu_crc_contract
+    sources: [artifacts/firmware/src/modbus_crc.c]
+    test_sources: [verifier/test_modbus_crc.c]
+    include_dirs: [artifacts/firmware/include]
+  - type: firmware_build
+    name: modbus_esp32_s2_builds
+    root: artifacts/firmware
+    allowed_build_systems: [platformio]
+    required_files: [platformio.ini, src/main.cpp, src/modbus_crc.c, include/modbus_crc.h]
+    output_globs: [.pio/build/**/*.elf]
+    timeout_seconds: 600

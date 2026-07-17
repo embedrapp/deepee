@@ -1,0 +1,21 @@
+id: deepee-repair-001
+suite: repair
+difficulty: easy
+timeout_minutes: 30
+required_tools: [gcc]
+submission_paths: [firmware/src/scheduler.c]
+required_artifacts:
+  - {path: firmware/src/scheduler.c, kind: file}
+checks:
+  - type: artifact_presence
+    name: repaired_source_exists
+  - type: starter_integrity
+    name: scheduler_contract_unchanged
+    protected_globs:
+      - firmware/src/scheduler.h
+      - firmware/Makefile
+  - type: c_unit_tests
+    name: rollover_safe_scheduler_behavior
+    sources: [firmware/src/scheduler.c]
+    test_sources: [verifier/test_scheduler.c]
+    include_dirs: [firmware/src]

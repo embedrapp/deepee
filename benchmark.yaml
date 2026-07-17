@@ -1,0 +1,23 @@
+schema_version: "1.0"
+id: deepee
+version: 1.1.0
+status: public
+license: MIT
+container_platform: linux/amd64
+network_policy:
+  agent_egress: ["api.openai.com:443"]
+  verifier_egress: []
+images:
+  agent: deepee-agent:1.1.0
+  verifier: deepee-verifier:1.1.0
+baseline:
+  system: codex
+  model: gpt-5.6-sol
+  reasoning_effort: xhigh
+toolchain:
+  kicad: 10.0.4
+  platformio: 6.1.19
+score_policy:
+  primary_metric: pass_at_1
+  task_result: all_checks_must_pass
+  first_publishable_attempt_only: true

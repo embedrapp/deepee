@@ -1,0 +1,36 @@
+id: deepee-sch-001
+suite: schematic
+difficulty: medium
+timeout_minutes: 45
+required_tools: [kicad-cli]
+submission_paths: [artifacts/power-input.kicad_sch]
+required_artifacts:
+  - {path: artifacts/power-input.kicad_sch, kind: file}
+checks:
+  - type: artifact_presence
+    name: repaired_schematic_exists
+  - type: kicad_schematic_structure
+    name: fixed_components_preserved
+    schematic: artifacts/power-input.kicad_sch
+    min_symbols: 2
+    min_wires: 0
+    exact_references: true
+    components:
+      - {reference: U1, value: Test_Symbol_GND, library: "Test:Test_Symbol_GND", footprint: ""}
+      - {reference: R1, value: 1k, library: "Device:R", footprint: ""}
+    required_nets: ["\\+5V", GND]
+  - type: kicad_netlist_contract
+    name: power_pin_connectivity
+    schematic: artifacts/power-input.kicad_sch
+    exact_references: true
+    components:
+      - {reference: U1, value: Test_Symbol_GND, footprint: ""}
+      - {reference: R1, value: 1k, footprint: ""}
+    pin_nets:
+      U1.1: "+5V"
+      U1.2: GND
+      R1.1: "+5V"
+      R1.2: GND
+  - type: kicad_erc
+    name: clean_erc
+    schematic: artifacts/power-input.kicad_sch

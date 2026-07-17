@@ -1,0 +1,21 @@
+id: deepee-repair-003
+suite: repair
+difficulty: medium
+timeout_minutes: 30
+required_tools: [gcc]
+submission_paths: [firmware/src/adc_scale.c]
+required_artifacts:
+  - {path: firmware/src/adc_scale.c, kind: file}
+checks:
+  - type: artifact_presence
+    name: repaired_adc_scaler_exists
+  - type: starter_integrity
+    name: adc_scaler_contract_unchanged
+    protected_globs:
+      - firmware/src/adc_scale.h
+      - firmware/Makefile
+  - type: c_unit_tests
+    name: overflow_safe_adc_scaling
+    sources: [firmware/src/adc_scale.c]
+    test_sources: [verifier/test_adc_scale.c]
+    include_dirs: [firmware/src]

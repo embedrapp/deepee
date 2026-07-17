@@ -1,0 +1,21 @@
+id: deepee-repair-002
+suite: repair
+difficulty: medium
+timeout_minutes: 30
+required_tools: [gcc]
+submission_paths: [firmware/src/ring_buffer.c]
+required_artifacts:
+  - {path: firmware/src/ring_buffer.c, kind: file}
+checks:
+  - type: artifact_presence
+    name: repaired_ring_buffer_exists
+  - type: starter_integrity
+    name: ring_buffer_contract_unchanged
+    protected_globs:
+      - firmware/src/ring_buffer.h
+      - firmware/Makefile
+  - type: c_unit_tests
+    name: wrapped_fifo_behavior
+    sources: [firmware/src/ring_buffer.c]
+    test_sources: [verifier/test_ring_buffer.c]
+    include_dirs: [firmware/src]

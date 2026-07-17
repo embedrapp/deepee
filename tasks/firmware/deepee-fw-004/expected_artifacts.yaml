@@ -1,0 +1,5 @@
+required:
+  - artifacts/firmware/include/modbus_crc.h
+  - artifacts/firmware/src/modbus_crc.c
+  - artifacts/firmware/src/main.cpp
+  - artifacts/firmware/platformio.ini

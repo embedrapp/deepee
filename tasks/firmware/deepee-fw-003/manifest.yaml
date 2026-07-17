@@ -1,0 +1,32 @@
+id: deepee-fw-003
+suite: firmware
+difficulty: medium
+timeout_minutes: 45
+required_tools: [gcc, pio]
+submission_paths: [artifacts/firmware/src/bme280_temperature.c]
+required_artifacts:
+  - {path: artifacts/firmware/platformio.ini, kind: file}
+  - {path: artifacts/firmware/include/bme280_temperature.h, kind: file}
+  - {path: artifacts/firmware/src/bme280_temperature.c, kind: file}
+  - {path: artifacts/firmware/src/main.cpp, kind: file}
+checks:
+  - type: artifact_presence
+    name: bme280_project_complete
+  - type: starter_integrity
+    name: bme280_integration_unchanged
+    protected_globs:
+      - artifacts/firmware/include/bme280_temperature.h
+      - artifacts/firmware/src/main.cpp
+      - artifacts/firmware/platformio.ini
+  - type: c_unit_tests
+    name: bme280_integer_compensation
+    sources: [artifacts/firmware/src/bme280_temperature.c]
+    test_sources: [verifier/test_bme280_temperature.c]
+    include_dirs: [artifacts/firmware/include]
+  - type: firmware_build
+    name: bme280_esp32_s2_builds
+    root: artifacts/firmware
+    allowed_build_systems: [platformio]
+    required_files: [platformio.ini, src/main.cpp, src/bme280_temperature.c, include/bme280_temperature.h]
+    output_globs: [.pio/build/**/*.elf]
+    timeout_seconds: 600
