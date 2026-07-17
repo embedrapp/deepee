@@ -1,0 +1,29 @@
+# Public run protocol
+
+## One attempt
+
+1. Check out an immutable benchmark revision and select the pinned agent/verifier images.
+2. Pass repository tests, image and restricted-egress smoke checks, all private reference submissions, and `deepee doctor` on the execution host.
+3. Create a fresh run directory with the task prompt and starter tree.
+4. Start one agent process and stop it at the task timeout.
+5. Freeze the run directory and verify it in the offline verifier image.
+6. Keep the scored JSON and deterministic evidence ZIP, including failed attempts.
+7. Regenerate `leaderboard/results.json` with `deepee report`.
+
+## Fair comparison
+
+- Compared agents receive the same prompt, starter files, timeout, resource limits, and verifier revision.
+- A timeout, crash, or nonzero automated-agent exit fails the task.
+- Every task check must pass; there is no partial credit.
+- The first publishable attempt for an agent configuration, benchmark hash, immutable agent/verifier image IDs, and task is the only attempt counted by Pass@1.
+- Pass@1 is reported only after that exact cohort has attempted every task declared by its verifier; incomplete cohorts show a null aggregate and list the missing tasks.
+- Hardware deliverables must be native KiCad 10 files. Vendor-neutral or lossy exchange exports are not accepted in version 1.
+- Human changes after the attempt starts make the run a different evaluation condition and must not be reported as an autonomous baseline.
+
+## Isolation and provenance
+
+The agent image contains authoring tools but not `tasks/`, verifier code, or reference solutions. During an attempt it has no direct internet route: an internal Docker network reaches a dedicated CONNECT proxy that accepts only `api.openai.com:443`, and API-key authentication is the only supported mode. The verifier receives the frozen submission as a read-only bind mount and writes build/report evidence to a separate temporary mount. It runs with networking disabled, all Linux capabilities dropped, and a temporary home.
+
+A publishable record keeps run timestamps and IDs, agent/model/effort, task and benchmark hashes, prompt and agent-config hashes, submission/artifact hashes, image IDs, tool versions, process result, wall time, and token usage when the runner reports it.
+
+Host verification and `--allow-missing-tools` are development checks and are never publishable.
