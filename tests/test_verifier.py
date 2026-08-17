@@ -80,6 +80,13 @@ def _score(
                 "run_id": run_id,
                 "usage": {},
                 "cost_estimate": {"total_usd": 1.25},
+                "network_policy": {
+                    "profile": "api_key",
+                    "effective_profile": "api_key",
+                    "authentication": "api_key",
+                    "agent_egress": ["api.openai.com:443"],
+                    "verifier_egress": [],
+                },
                 "agent_config_hash": "config-a",
             },
         },
@@ -96,7 +103,18 @@ class VerifierTests(unittest.TestCase):
             (run_dir / "artifacts" / "result.txt").write_text("ok\n", encoding="utf-8")
             (run_dir / ".deepee").mkdir()
             (run_dir / ".deepee" / "run.json").write_text(
-                json.dumps({"cost_estimate": {"total_usd": 1.25}}),
+                json.dumps(
+                    {
+                        "cost_estimate": {"total_usd": 1.25},
+                        "network_policy": {
+                            "profile": "api_key",
+                            "effective_profile": "api_key",
+                            "authentication": "api_key",
+                            "agent_egress": ["api.openai.com:443"],
+                            "verifier_egress": [],
+                        },
+                    }
+                ),
                 encoding="utf-8",
             )
             passed = verify_task("sample-fw", run_dir, root=root)
@@ -108,6 +126,7 @@ class VerifierTests(unittest.TestCase):
             self.assertEqual(passed["score_vector"]["deliverable"]["pass_rate"], 1.0)
             self.assertEqual(len(passed["metadata"]["hashes"]["decision"]), 64)
             self.assertEqual(passed["metadata"]["run"]["cost_estimate"]["total_usd"], 1.25)
+            self.assertEqual(passed["metadata"]["run"]["network_policy"]["effective_profile"], "api_key")
             repeated = verify_task("sample-fw", run_dir, root=root)
             self.assertEqual(
                 passed["metadata"]["hashes"]["decision"],
@@ -264,6 +283,7 @@ checks:
             cohort = next(iter(report["by_agent"].values()))
             self.assertEqual(cohort["pass_at_1"], 0.0)
             self.assertEqual(cohort["estimated_api_cost_usd"], 1.25)
+            self.assertEqual(cohort["network_policy"]["effective_profile"], "api_key")
             self.assertTrue(cohort["complete"])
             publishable = [row for row in report["runs"] if row["publishable"]]
             self.assertTrue(publishable[0]["counts_for_pass_at_1"])

@@ -5,6 +5,7 @@
   "runs": [],
   "schema_version": "2.0",
   "total_first_attempts": 0,
+  "total_estimated_api_cost_usd": 0.0,
   "total_publishable_runs": 0,
   "total_runs": 0
 }

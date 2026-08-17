@@ -95,6 +95,23 @@ def _effective_container(configured: Dict[str, Any]) -> Dict[str, Any]:
     return container
 
 
+def _effective_network_policy(agent: Dict[str, Any], container: Dict[str, Any]) -> Dict[str, Any]:
+    """Return and validate the egress/authentication profile used by this run."""
+    configured = dict(agent.get("network_policy") or {})
+    if not container:
+        return configured
+    profile = str(configured.get("profile") or "")
+    if not profile:
+        raise ValueError("Containerized agents must declare network_policy.profile")
+    proxy_profile = "chatgpt_subscription" if os.environ.get("DEEPEE_CHATGPT_AUTH") == "1" else "api_key"
+    if profile != proxy_profile:
+        raise ValueError(
+            f"Agent network profile {profile!r} does not match the active proxy profile {proxy_profile!r}"
+        )
+    configured["effective_profile"] = proxy_profile
+    return configured
+
+
 def _container_command_version(container: Dict[str, Any], executable: str) -> Optional[str]:
     engine = str(container.get("engine", "docker"))
     image = str(container.get("image") or "")
@@ -323,6 +340,7 @@ def prepare_run(agent_config: Path, task_ref: str, runs_root: Optional[Path] = N
     }
     runner = agent.get("runner", {})
     container = _effective_container(runner.get("container") or {})
+    network_policy = _effective_network_policy(agent, container)
     command_variables = dict(host_variables)
     if container and os.environ.get("DEEPEE_NO_CONTAINER") != "1":
         command_variables.update(
@@ -358,6 +376,7 @@ def prepare_run(agent_config: Path, task_ref: str, runs_root: Optional[Path] = N
         "command": formatted_command,
         "inner_command": inner_command,
         "container": container,
+        "network_policy": network_policy,
         "container_engine_version": _command_version([str(container.get("engine", "docker"))]) if container else None,
         "agent_container_image_id": _container_image_id(container),
         "verification_container_image_id": _container_image_id(container, "verification_image"),

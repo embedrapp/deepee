@@ -32,6 +32,7 @@ def _result_row(path: Path, payload: Dict[str, Any]) -> Dict[str, Any]:
         "wall_time_seconds": run.get("wall_time_seconds"),
         "usage": run.get("usage", {}),
         "cost_estimate": run.get("cost_estimate", {}),
+        "network_policy": run.get("network_policy", {}),
         "agent_cli_version": run.get("agent_cli_version"),
         "agent_container_image_id": run.get("agent_container_image_id"),
         "verification_container": metadata.get("verification_container", {}),
@@ -120,6 +121,7 @@ def collect_results(results_dir: Optional[Path] = None, output: Optional[Path] =
         by_agent[_cohort_id(cohort_key)] = {
             "agent": representative.get("agent") or {},
             "agent_config_hash": representative.get("agent_config_hash"),
+            "network_policy": representative.get("network_policy") or {},
             "benchmark_hash": (representative.get("hashes") or {}).get("benchmark"),
             "agent_container_image_id": representative.get("agent_container_image_id"),
             "verification_container_image_id": (representative.get("verification_container") or {}).get("image_id"),

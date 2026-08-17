@@ -22,7 +22,9 @@ export CODEX_API_KEY='...'
 ./scripts/run-ec2-baseline.sh --task deepee-repair-001
 ```
 
-Use `--all-tasks` for the complete 12-task suite. The script runs repository tests, builds the two pinned images, proves the agent can reach only the OpenAI API, performs offline verifier checks, verifies every private reference submission, runs doctor, and then starts one fresh attempt per selected task.
+To use a logged-in ChatGPT subscription instead, run `codex login --device-auth` on the host and invoke `./scripts/run-ec2-chatgpt-baseline.sh` with the same task arguments.
+
+Use `--all-tasks` for the complete 48-task suite. The script runs repository tests, builds the two pinned images, proves the selected OpenAI authentication profile's restricted egress, performs offline verifier checks, verifies every private reference submission, runs doctor, and then starts one fresh attempt per selected task.
 
 ## Manual KiCad agent
 

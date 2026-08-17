@@ -58,7 +58,9 @@ export CODEX_API_KEY='...'
 ./scripts/run-ec2-baseline.sh --all-tasks
 ```
 
-The deployment builds separate `deepee-agent:1.2.0` and `deepee-verifier:1.2.0` images. The agent image has KiCad 10.0.4, PlatformIO 6.1.19, compilers, and Codex but no benchmark tasks or verifier code. Agent runs use an internal-only Docker network whose CONNECT proxy permits only `api.openai.com:443`; the host smoke gate proves both that route and blocked GitHub/direct egress. Verification runs without any network or agent credentials. Before a baseline starts, the Ubuntu host also proves one private reference submission for every task against that same verifier image. See [docs/EC2.md](docs/EC2.md) and [docs/RUN_PROTOCOL.md](docs/RUN_PROTOCOL.md).
+For a ChatGPT subscription-authenticated Codex run, complete `codex login --device-auth` on the host and use `./scripts/run-ec2-chatgpt-baseline.sh` instead.
+
+The deployment builds separate `deepee-agent:1.2.0` and `deepee-verifier:1.2.0` images. The agent image has KiCad 10.0.4, PlatformIO 6.1.19, compilers, and Codex but no benchmark tasks or verifier code. Agent runs use an internal-only Docker network and one explicit CONNECT-proxy profile: API-key runs permit `api.openai.com:443`, while ChatGPT-subscription runs additionally permit `auth.openai.com:443` and `chatgpt.com:443`. Both profiles block every other authority and direct internet egress, and the effective profile and allowlist are recorded in the run. Verification runs without any network or agent credentials. Before a baseline starts, the Ubuntu host also proves one private reference submission for every task against that same verifier image. See [docs/EC2.md](docs/EC2.md) and [docs/RUN_PROTOCOL.md](docs/RUN_PROTOCOL.md).
 
 For a manual external agent that uses KiCad:
 

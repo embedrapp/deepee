@@ -40,6 +40,7 @@
           "benchmark_task_ids",
           "agent_config_hash",
           "agent_container_image_id",
+          "network_policy",
           "result_file"
         ],
         "properties": {
@@ -77,6 +78,26 @@
           },
           "evidence_archive": {"type": "object"},
           "cost_estimate": {"type": "object"},
+          "network_policy": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["profile", "effective_profile", "authentication", "agent_egress", "verifier_egress"],
+            "properties": {
+              "profile": {"enum": ["api_key", "chatgpt_subscription"]},
+              "effective_profile": {"enum": ["api_key", "chatgpt_subscription"]},
+              "authentication": {"enum": ["api_key", "chatgpt_subscription"]},
+              "agent_egress": {
+                "type": "array",
+                "items": {"type": "string"},
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "verifier_egress": {
+                "type": "array",
+                "maxItems": 0
+              }
+            }
+          },
           "result_file": {"type": "string"}
         }
       }
