@@ -216,11 +216,15 @@ def component_contract(design: HardwareDesign, schematic: bool) -> list[dict[str
     return records
 
 
-def connection_text(design: HardwareDesign) -> str:
+def connection_text(design: HardwareDesign, *, include_symbol: bool) -> str:
     lines = []
     for component in design.components:
         mapping = ", ".join(f"pin {pin} → `{net}`" for pin, net in component.pins)
-        lines.append(f"- `{component.reference}` = `{component.value}`: {mapping}")
+        identity = f"`{component.reference}` = `{component.value}`"
+        if include_symbol:
+            identity += f"; symbol `{component.library}`"
+        identity += f"; footprint `{component.footprint}`"
+        lines.append(f"- {identity}: {mapping}")
     return "\n".join(lines)
 
 
@@ -237,12 +241,13 @@ def schematic_prompt(design: HardwareDesign, repair: bool) -> str:
 
     {action} Use the exact references, values, footprints, and nets below:
 
-    {connection_text(design)}
+    {connection_text(design, include_symbol=True)}
 
     Use explicit labels for every named net. The finished schematic must export a
     netlist matching this connection table and pass KiCad ERC with no errors or
     warnings. Save it as `artifacts/{design.filename}.kicad_sch`.
-    """).lstrip()
+    Preserve `artifacts/{design.filename}.kicad_pro` byte-for-byte; it is the protected project-rules file.
+    """).strip() + "\n"
 
 
 def pcb_prompt(design: HardwareDesign, repair: bool) -> str:
@@ -259,13 +264,17 @@ def pcb_prompt(design: HardwareDesign, repair: bool) -> str:
     {action} Keep a 60 mm × 40 mm rectangular outline and use the exact references,
     values, footprints, and pin nets below:
 
-    {connection_text(design)}
+    {connection_text(design, include_symbol=False)}
 
     Route every named net and resolve all clearance, unconnected-item, and board-
     outline findings. Save the finished board as
     `artifacts/{design.filename}.kicad_pcb`; it must pass KiCad DRC with no errors
     or warnings.
-    """).lstrip()
+    Preserve `artifacts/{design.filename}.kicad_pro` byte-for-byte; it is the protected project-rules file.
+
+    Use routed copper at least 0.25 mm wide on every named net.
+    {"Keep the total routed lengths of `USB_DP` and `USB_DM` within 1.0 mm of each other." if design.number == 7 else ""}
+    """).strip() + "\n"
 
 
 def provenance(design: HardwareDesign) -> str:
@@ -544,6 +553,7 @@ def generate_design(design: HardwareDesign) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--pcb-starters-only", action="store_true")
+    parser.add_argument("--prompts-only", action="store_true")
     args = parser.parse_args()
     if args.pcb_starters_only:
         for design in DESIGNS:
@@ -551,6 +561,15 @@ def main() -> int:
                 destination = TASKS / "pcb" / f"deepee-pcb-{design.number:03d}" / "starter" / "artifacts" / f"{design.filename}.kicad_pcb"
                 generate_real_pcb_starter(design, destination)
         print("Regenerated 5 PCB repair starters from KiCad library footprints")
+        return 0
+    if args.prompts_only:
+        for design in DESIGNS:
+            repair = design.number <= 7
+            sch_suite = "schematic" if repair else "schematic-design"
+            pcb_suite = "pcb" if repair else "pcb-design"
+            write(TASKS / sch_suite / f"deepee-sch-{design.number:03d}" / "prompt.md", schematic_prompt(design, repair))
+            write(TASKS / pcb_suite / f"deepee-pcb-{design.number:03d}" / "prompt.md", pcb_prompt(design, repair))
+        print(f"Regenerated {len(DESIGNS) * 2} public task prompts")
         return 0
     for design in DESIGNS:
         generate_design(design)

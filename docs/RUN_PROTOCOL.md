@@ -26,4 +26,6 @@ The agent image contains authoring tools but not `tasks/`, verifier code, or ref
 
 A publishable record keeps run timestamps and IDs, agent/model/effort, task and benchmark hashes, prompt and agent-config hashes, submission/artifact hashes, image IDs, tool versions, process result, wall time, and token usage when the runner reports it.
 
+When an agent config declares public token prices, the run also records a cached-aware API-equivalent estimate for that benchmark request. Cached input is subtracted from total input before the uncached rate is applied. ChatGPT subscription attempts still have no per-task token invoice, so the estimate records `actual_subscription_charge_usd: null`. Codex CLI exposes aggregate turn usage rather than each underlying API request; cache-write charges and request-specific long-context multipliers therefore remain explicitly excluded from the estimate.
+
 Host verification and `--allow-missing-tools` are development checks and are never publishable.

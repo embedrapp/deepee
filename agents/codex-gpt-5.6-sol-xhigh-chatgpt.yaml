@@ -4,6 +4,16 @@ system: codex
 model: gpt-5.6-sol
 effort: xhigh
 tool_profile: deepee-kicad-toolchain
+pricing:
+  kind: api_equivalent
+  currency: USD
+  model: gpt-5.6-sol
+  as_of: "2026-08-17"
+  source: https://developers.openai.com/api/docs/models/gpt-5.6-sol
+  per_million_tokens:
+    input: 5.00
+    cached_input: 0.50
+    output: 30.00
 context_file: agents/KICAD_CONTEXT.md
 runner:
   type: command

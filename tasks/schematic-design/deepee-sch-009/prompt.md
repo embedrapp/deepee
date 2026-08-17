@@ -4,13 +4,14 @@
 
     Create the schematic from the empty starter and implement the complete electrical interface. Use the exact references, values, footprints, and nets below:
 
-    - `U1` = `SN65HVD230`: pin 1 → `CAN_TX`, pin 2 → `GND`, pin 3 → `3V3`, pin 4 → `CAN_RX`, pin 5 → `VREF`, pin 6 → `CANL`, pin 7 → `CANH`, pin 8 → `RS`
-- `R1` = `120R`: pin 1 → `CANH`, pin 2 → `CANL`
-- `R2` = `10k`: pin 1 → `RS`, pin 2 → `GND`
-- `C1` = `100nF`: pin 1 → `3V3`, pin 2 → `GND`
-- `J1` = `Conn_01x05`: pin 1 → `3V3`, pin 2 → `GND`, pin 3 → `CAN_TX`, pin 4 → `CAN_RX`, pin 5 → `VREF`
-- `J2` = `Conn_01x03`: pin 1 → `CANH`, pin 2 → `CANL`, pin 3 → `GND`
+    - `U1` = `SN65HVD230`; symbol `Interface_CAN_LIN:SN65HVD230`; footprint `Package_SO:SOIC-8_3.9x4.9mm_P1.27mm`: pin 1 → `CAN_TX`, pin 2 → `GND`, pin 3 → `3V3`, pin 4 → `CAN_RX`, pin 5 → `VREF`, pin 6 → `CANL`, pin 7 → `CANH`, pin 8 → `RS`
+- `R1` = `120R`; symbol `Device:R`; footprint `Resistor_SMD:R_0603_1608Metric`: pin 1 → `CANH`, pin 2 → `CANL`
+- `R2` = `10k`; symbol `Device:R`; footprint `Resistor_SMD:R_0603_1608Metric`: pin 1 → `RS`, pin 2 → `GND`
+- `C1` = `100nF`; symbol `Device:C`; footprint `Capacitor_SMD:C_0603_1608Metric`: pin 1 → `3V3`, pin 2 → `GND`
+- `J1` = `Conn_01x05`; symbol `Connector_Generic:Conn_01x05`; footprint `Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical`: pin 1 → `3V3`, pin 2 → `GND`, pin 3 → `CAN_TX`, pin 4 → `CAN_RX`, pin 5 → `VREF`
+- `J2` = `Conn_01x03`; symbol `Connector_Generic:Conn_01x03`; footprint `TerminalBlock_RND:TerminalBlock_RND_205-00288_1x03_P5.08mm_Horizontal`: pin 1 → `CANH`, pin 2 → `CANL`, pin 3 → `GND`
 
     Use explicit labels for every named net. The finished schematic must export a
     netlist matching this connection table and pass KiCad ERC with no errors or
     warnings. Save it as `artifacts/sn65hvd230-can.kicad_sch`.
+    Preserve `artifacts/sn65hvd230-can.kicad_pro` byte-for-byte; it is the protected project-rules file.

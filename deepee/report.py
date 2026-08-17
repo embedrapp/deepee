@@ -31,6 +31,7 @@ def _result_row(path: Path, payload: Dict[str, Any]) -> Dict[str, Any]:
         "created_at": run.get("created_at"),
         "wall_time_seconds": run.get("wall_time_seconds"),
         "usage": run.get("usage", {}),
+        "cost_estimate": run.get("cost_estimate", {}),
         "agent_cli_version": run.get("agent_cli_version"),
         "agent_container_image_id": run.get("agent_container_image_id"),
         "verification_container": metadata.get("verification_container", {}),
@@ -130,6 +131,10 @@ def collect_results(results_dir: Optional[Path] = None, output: Optional[Path] =
             "passed_at_1": passed_at_1,
             "complete": complete,
             "pass_at_1": (passed_at_1 / len(required)) if complete else None,
+            "estimated_api_cost_usd": round(
+                sum(float((row.get("cost_estimate") or {}).get("total_usd") or 0) for row in cohort_first_attempts),
+                6,
+            ),
         }
 
     report = {
@@ -138,6 +143,10 @@ def collect_results(results_dir: Optional[Path] = None, output: Optional[Path] =
         "total_runs": len(rows),
         "total_publishable_runs": sum(1 for row in rows if row["publishable"]),
         "total_first_attempts": len(first_attempts),
+        "total_estimated_api_cost_usd": round(
+            sum(float((row.get("cost_estimate") or {}).get("total_usd") or 0) for row in rows),
+            6,
+        ),
         "by_suite": by_suite,
         "by_agent": by_agent,
         "runs": rows,
