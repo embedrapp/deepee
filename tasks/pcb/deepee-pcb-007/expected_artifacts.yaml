@@ -1,0 +1,3 @@
+required:
+- artifacts/usb-c-5v-sink.kicad_pcb
+- artifacts/usb-c-5v-sink.kicad_pro

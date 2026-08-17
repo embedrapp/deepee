@@ -1,0 +1,88 @@
+id: deepee-sch-006
+suite: schematic
+difficulty: hard
+timeout_minutes: 90
+required_tools:
+- kicad-cli
+submission_paths:
+- artifacts/ap2112-3v3-regulator.kicad_sch
+required_artifacts:
+- path: artifacts/ap2112-3v3-regulator.kicad_sch
+  kind: file
+- path: artifacts/ap2112-3v3-regulator.kicad_pro
+  kind: file
+checks:
+- type: artifact_presence
+  name: completed_schematic_exists
+- type: starter_integrity
+  name: project_rules_unchanged
+  protected_globs:
+  - artifacts/ap2112-3v3-regulator.kicad_pro
+- type: kicad_schematic_structure
+  name: component_and_net_contract
+  schematic: artifacts/ap2112-3v3-regulator.kicad_sch
+  min_symbols: 5
+  min_wires: 0
+  exact_references: true
+  components:
+  - reference: U1
+    value: AP2112K-3.3
+    footprint: Package_TO_SOT_SMD:SOT-23-5
+    library: Regulator_Linear:AP2112K-3.3
+  - reference: C1
+    value: 1uF
+    footprint: Capacitor_SMD:C_0805_2012Metric
+    library: Device:C
+  - reference: C2
+    value: 1uF
+    footprint: Capacitor_SMD:C_0805_2012Metric
+    library: Device:C
+  - reference: R1
+    value: 100k
+    footprint: Resistor_SMD:R_0603_1608Metric
+    library: Device:R
+  - reference: J1
+    value: Conn_01x03
+    footprint: Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical
+    library: Connector_Generic:Conn_01x03
+  required_nets:
+  - VIN
+  - GND
+  - 3V3
+- type: kicad_netlist_contract
+  name: pin_connectivity
+  schematic: artifacts/ap2112-3v3-regulator.kicad_sch
+  exact_references: true
+  components:
+  - reference: U1
+    value: AP2112K-3.3
+    footprint: Package_TO_SOT_SMD:SOT-23-5
+  - reference: C1
+    value: 1uF
+    footprint: Capacitor_SMD:C_0805_2012Metric
+  - reference: C2
+    value: 1uF
+    footprint: Capacitor_SMD:C_0805_2012Metric
+  - reference: R1
+    value: 100k
+    footprint: Resistor_SMD:R_0603_1608Metric
+  - reference: J1
+    value: Conn_01x03
+    footprint: Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical
+  pin_nets:
+    U1.1: VIN
+    U1.2: GND
+    U1.3: VIN
+    U1.5: 3V3
+    C1.1: VIN
+    C1.2: GND
+    C2.1: 3V3
+    C2.2: GND
+    R1.1: VIN
+    R1.2: GND
+    J1.1: VIN
+    J1.2: GND
+    J1.3: 3V3
+- type: kicad_erc
+  name: clean_erc
+  schematic: artifacts/ap2112-3v3-regulator.kicad_sch

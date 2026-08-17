@@ -1,0 +1,27 @@
+id: deepee-repair-005
+suite: repair
+difficulty: hard
+timeout_minutes: 45
+required_tools:
+- gcc
+submission_paths:
+- firmware/src/mqtt_remaining_length.c
+required_artifacts:
+- path: firmware/src/mqtt_remaining_length.c
+  kind: file
+checks:
+- type: artifact_presence
+  name: repaired_mqtt_remaining_length_exists
+- type: starter_integrity
+  name: mqtt_remaining_length_contract_unchanged
+  protected_globs:
+  - firmware/src/mqtt_remaining_length.h
+  - firmware/Makefile
+- type: c_unit_tests
+  name: mqtt_remaining_length_behavior
+  sources:
+  - firmware/src/mqtt_remaining_length.c
+  test_sources:
+  - verifier/test_mqtt_remaining_length.c
+  include_dirs:
+  - firmware/src

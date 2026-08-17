@@ -16,6 +16,7 @@ up() {
   down
   "${docker_cmd}" network create --internal "${network}" >/dev/null
   "${docker_cmd}" run --detach --name "${proxy_name}" --network bridge \
+    --env "DEEPEE_CHATGPT_AUTH=${DEEPEE_CHATGPT_AUTH:-0}" \
     "${agent_image}" python3 /usr/local/bin/deepee-api-egress-proxy >/dev/null
   "${docker_cmd}" network connect --alias "${proxy_name}" "${network}" "${proxy_name}"
   for _ in $(seq 1 50); do

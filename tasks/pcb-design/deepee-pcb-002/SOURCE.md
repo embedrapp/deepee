@@ -1,6 +1,6 @@
 # Task provenance
 
-This greenfield layout task uses the same real MCP9808 breakout application and official pinout as `deepee-sch-002`. The mechanical limit and fixed component contract are original benchmark requirements.
+This greenfield layout task uses the same real MCP9808 breakout application and official pinout as `deepee-sch-002`. The mechanical limit and fixed component contract are original project requirements.
 
 - Microchip product and datasheet: https://www.microchip.com/en-us/product/MCP9808
 - Adafruit MCP9808 breakout guide and PCB downloads: https://learn.adafruit.com/adafruit-mcp9808-precision-i2c-temperature-sensor-guide/downloads

@@ -5,4 +5,4 @@ Adapted from Zephyr's ADC conversion helper, which explicitly widens the raw-sam
 - Zephyr ADC API source documentation: https://docs.zephyrproject.org/latest/doxygen/html/drivers_2adc_8h_source.html
 - Zephyr project repository: https://github.com/zephyrproject-rtos/zephyr
 
-The protected API, error contract, and faulty starter are original benchmark material. No Zephyr source code is copied.
+The protected API, error contract, and faulty starter are original project material. No Zephyr source code is copied.

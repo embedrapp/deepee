@@ -1,0 +1,3 @@
+required:
+- artifacts/ina219-current-monitor.kicad_sch
+- artifacts/ina219-current-monitor.kicad_pro

@@ -6,4 +6,4 @@ The function receives the 20-bit raw temperature ADC value and the `dig_T1`, `di
 
 Reject null pointers and raw ADC values above `0xFFFFF`; do not modify outputs on failure. Use fixed-width integer arithmetic and preserve the shift/order semantics of Bosch's documented algorithm.
 
-Do not change `bme280_temperature.h`, `main.cpp`, or `platformio.ini`. Submit the completed C file in place. It must pass native verifier vectors and the ESP32-S2 build.
+Do not change `bme280_temperature.h`, `main.cpp`, or `platformio.ini`. Submit the completed C file in place and keep it compatible with the ESP32-S2 build.

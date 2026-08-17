@@ -1,0 +1,3 @@
+required:
+- artifacts/microsd-spi-adapter.kicad_pcb
+- artifacts/microsd-spi-adapter.kicad_pro

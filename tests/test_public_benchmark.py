@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -46,7 +47,7 @@ void scheduler_advance(PeriodicScheduler *scheduler, uint32_t now_ms) {
 
 
 class PublicBenchmarkTests(unittest.TestCase):
-    def test_release_contract_is_binary_kicad_10_and_twelve_tasks(self) -> None:
+    def test_release_contract_is_binary_kicad_10_and_forty_eight_tasks(self) -> None:
         release = yaml.safe_load((REPO_ROOT / "benchmark.yaml").read_text(encoding="utf-8"))
         self.assertEqual(release["version"], "1.1.0")
         self.assertEqual(release["toolchain"]["kicad"], "10.0.4")
@@ -55,20 +56,12 @@ class PublicBenchmarkTests(unittest.TestCase):
         self.assertEqual(release["score_policy"]["task_result"], "all_checks_must_pass")
         self.assertEqual(release["network_policy"]["agent_egress"], ["api.openai.com:443"])
         self.assertEqual(release["network_policy"]["verifier_egress"], [])
-        self.assertEqual({task.id for task in iter_tasks(REPO_ROOT)}, {
-            "deepee-repair-001",
-            "deepee-repair-002",
-            "deepee-repair-003",
-            "deepee-fw-001",
-            "deepee-fw-002",
-            "deepee-fw-003",
-            "deepee-fw-004",
-            "deepee-fw-005",
-            "deepee-sch-001",
-            "deepee-pcb-001",
-            "deepee-sch-002",
-            "deepee-pcb-002",
-        })
+        expected = {
+            f"deepee-{category}-{number:03d}"
+            for category in ("repair", "fw", "sch", "pcb")
+            for number in range(1, 13)
+        }
+        self.assertEqual({task.id for task in iter_tasks(REPO_ROOT)}, expected)
 
     def test_runner_is_containerized_without_mounting_user_config(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, mock.patch(
@@ -83,6 +76,7 @@ class PublicBenchmarkTests(unittest.TestCase):
                 REPO_ROOT,
             )
         self.assertEqual(metadata["command"][0], "docker")
+        self.assertIn("--interactive", metadata["command"])
         self.assertIn("deepee-agent:1.1.0", metadata["command"])
         self.assertEqual(metadata["container"]["verification_image"], "deepee-verifier:1.1.0")
         self.assertFalse(metadata["container"]["mount_codex_home"])
@@ -218,6 +212,33 @@ class PublicBenchmarkTests(unittest.TestCase):
                 payload = run_kicad_netlist_contract(check, SimpleNamespace(id="task"), run_dir, {})
             self.assertTrue(payload["passed"], payload)
 
+    def test_netlist_contract_normalizes_root_sheet_local_label(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp)
+            artifacts = run_dir / "artifacts"
+            artifacts.mkdir()
+            (artifacts / "design.kicad_sch").write_text("(kicad_sch)\n", encoding="utf-8")
+
+            def fake_run(command, cwd, timeout):
+                output = Path(command[command.index("--output") + 1])
+                output.write_text(
+                    """<export><components><comp ref=\"U1\"><value>Sensor</value><footprint>Pkg</footprint></comp></components><nets><net code=\"1\" name=\"/SDA\"><node ref=\"U1\" pin=\"1\"/></net></nets></export>""",
+                    encoding="utf-8",
+                )
+                return {"returncode": 0, "output": "", "timed_out": False}
+
+            check = {
+                "schematic": "artifacts/design.kicad_sch",
+                "components": [{"reference": "U1", "value": "Sensor", "footprint": "Pkg"}],
+                "pin_nets": {"U1.1": "SDA"},
+            }
+            with mock.patch("deepee.checks.kicad_netlist.command_available", return_value=True), mock.patch(
+                "deepee.checks.kicad_netlist.run_subprocess", side_effect=fake_run
+            ):
+                payload = run_kicad_netlist_contract(check, SimpleNamespace(id="task"), run_dir, {})
+            self.assertTrue(payload["passed"], payload)
+            self.assertIn("SDA", payload["details"]["nets"])
+
     def test_hardware_tasks_fix_components_but_not_golden_geometry(self) -> None:
         for task in iter_tasks(REPO_ROOT):
             if task.suite not in {"schematic", "schematic-design", "pcb", "pcb-design"}:
@@ -227,8 +248,8 @@ class PublicBenchmarkTests(unittest.TestCase):
             self.assertTrue(structure.get("exact_references"), task.id)
             self.assertTrue(structure.get("components"), task.id)
             prompt = task.prompt_path.read_text(encoding="utf-8").lower()
-            if task.suite in {"schematic-design", "pcb-design"}:
-                self.assertIn("not compared", prompt)
+            self.assertNotIn("benchmark", prompt)
+            self.assertNotIn("verifier", prompt)
             self.assertTrue((task.path / "SOURCE.md").is_file(), task.id)
 
     def test_mcp9808_tasks_require_alert_pullup(self) -> None:
@@ -278,6 +299,8 @@ class PublicBenchmarkTests(unittest.TestCase):
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         self.assertEqual(module.ALLOWED_HOSTS, frozenset({"api.openai.com"}))
+        with mock.patch.dict(os.environ, {"DEEPEE_CHATGPT_AUTH": "0"}):
+            self.assertEqual(module._allowed_hosts(), frozenset({"api.openai.com"}))
         self.assertEqual(module._parse_authority("api.openai.com:443"), ("api.openai.com", 443))
         for invalid in ("api.openai.com:80", "api.openai.com.evil:443", "user@api.openai.com:443"):
             if invalid.endswith(".evil:443"):
@@ -287,6 +310,19 @@ class PublicBenchmarkTests(unittest.TestCase):
             else:
                 with self.assertRaises(ValueError):
                     module._parse_authority(invalid)
+
+    def test_agent_proxy_chatgpt_profile_remains_openai_only(self) -> None:
+        path = REPO_ROOT / "docker" / "api_egress_proxy.py"
+        spec = importlib.util.spec_from_file_location("deepee_api_egress_proxy_chatgpt", path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        with mock.patch.dict(os.environ, {"DEEPEE_CHATGPT_AUTH": "1"}):
+            self.assertEqual(
+                module._allowed_hosts(),
+                frozenset({"api.openai.com", "auth.openai.com", "chatgpt.com"}),
+            )
 
 
 if __name__ == "__main__":

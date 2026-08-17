@@ -1,0 +1,27 @@
+id: deepee-repair-011
+suite: repair
+difficulty: hard
+timeout_minutes: 45
+required_tools:
+- gcc
+submission_paths:
+- firmware/src/modbus_crc.c
+required_artifacts:
+- path: firmware/src/modbus_crc.c
+  kind: file
+checks:
+- type: artifact_presence
+  name: repaired_modbus_crc_exists
+- type: starter_integrity
+  name: modbus_crc_contract_unchanged
+  protected_globs:
+  - firmware/src/modbus_crc.h
+  - firmware/Makefile
+- type: c_unit_tests
+  name: modbus_crc_behavior
+  sources:
+  - firmware/src/modbus_crc.c
+  test_sources:
+  - verifier/test_modbus_crc.c
+  include_dirs:
+  - firmware/src

@@ -1,0 +1,3 @@
+required:
+- artifacts/ads1115-analog-input.kicad_sch
+- artifacts/ads1115-analog-input.kicad_pro

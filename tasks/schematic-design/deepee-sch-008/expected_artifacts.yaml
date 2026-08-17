@@ -1,0 +1,3 @@
+required:
+- artifacts/max3485-rs485.kicad_sch
+- artifacts/max3485-rs485.kicad_pro

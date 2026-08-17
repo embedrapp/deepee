@@ -243,7 +243,7 @@ def generate_breakout_board() -> None:
   (zone
     (net 1)
     (net_name "GND")
-    (layer "F.Cu")
+    (layer "B.Cu")
     (uuid "12345678-1234-4234-8234-123456789abc")
     (hatch edge 0.5)
     (connect_pads (clearance 0.3))

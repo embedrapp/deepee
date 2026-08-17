@@ -1,0 +1,109 @@
+id: deepee-sch-009
+suite: schematic-design
+difficulty: hard
+timeout_minutes: 90
+required_tools:
+- kicad-cli
+submission_paths:
+- artifacts/sn65hvd230-can.kicad_sch
+required_artifacts:
+- path: artifacts/sn65hvd230-can.kicad_sch
+  kind: file
+- path: artifacts/sn65hvd230-can.kicad_pro
+  kind: file
+checks:
+- type: artifact_presence
+  name: completed_schematic_exists
+- type: starter_integrity
+  name: project_rules_unchanged
+  protected_globs:
+  - artifacts/sn65hvd230-can.kicad_pro
+- type: kicad_schematic_structure
+  name: component_and_net_contract
+  schematic: artifacts/sn65hvd230-can.kicad_sch
+  min_symbols: 6
+  min_wires: 0
+  exact_references: true
+  components:
+  - reference: U1
+    value: SN65HVD230
+    footprint: Package_SO:SOIC-8_3.9x4.9mm_P1.27mm
+    library: Interface_CAN_LIN:SN65HVD230
+  - reference: R1
+    value: 120R
+    footprint: Resistor_SMD:R_0603_1608Metric
+    library: Device:R
+  - reference: R2
+    value: 10k
+    footprint: Resistor_SMD:R_0603_1608Metric
+    library: Device:R
+  - reference: C1
+    value: 100nF
+    footprint: Capacitor_SMD:C_0603_1608Metric
+    library: Device:C
+  - reference: J1
+    value: Conn_01x05
+    footprint: Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical
+    library: Connector_Generic:Conn_01x05
+  - reference: J2
+    value: Conn_01x03
+    footprint: TerminalBlock_RND:TerminalBlock_RND_205-00288_1x03_P5.08mm_Horizontal
+    library: Connector_Generic:Conn_01x03
+  required_nets:
+  - CAN_TX
+  - GND
+  - 3V3
+  - CAN_RX
+  - VREF
+  - CANL
+  - CANH
+  - RS
+- type: kicad_netlist_contract
+  name: pin_connectivity
+  schematic: artifacts/sn65hvd230-can.kicad_sch
+  exact_references: true
+  components:
+  - reference: U1
+    value: SN65HVD230
+    footprint: Package_SO:SOIC-8_3.9x4.9mm_P1.27mm
+  - reference: R1
+    value: 120R
+    footprint: Resistor_SMD:R_0603_1608Metric
+  - reference: R2
+    value: 10k
+    footprint: Resistor_SMD:R_0603_1608Metric
+  - reference: C1
+    value: 100nF
+    footprint: Capacitor_SMD:C_0603_1608Metric
+  - reference: J1
+    value: Conn_01x05
+    footprint: Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical
+  - reference: J2
+    value: Conn_01x03
+    footprint: TerminalBlock_RND:TerminalBlock_RND_205-00288_1x03_P5.08mm_Horizontal
+  pin_nets:
+    U1.1: CAN_TX
+    U1.2: GND
+    U1.3: 3V3
+    U1.4: CAN_RX
+    U1.5: VREF
+    U1.6: CANL
+    U1.7: CANH
+    U1.8: RS
+    R1.1: CANH
+    R1.2: CANL
+    R2.1: RS
+    R2.2: GND
+    C1.1: 3V3
+    C1.2: GND
+    J1.1: 3V3
+    J1.2: GND
+    J1.3: CAN_TX
+    J1.4: CAN_RX
+    J1.5: VREF
+    J2.1: CANH
+    J2.2: CANL
+    J2.3: GND
+- type: kicad_erc
+  name: clean_erc
+  schematic: artifacts/sn65hvd230-can.kicad_sch

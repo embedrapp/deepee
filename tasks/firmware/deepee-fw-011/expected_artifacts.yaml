@@ -1,0 +1,5 @@
+required:
+- artifacts/firmware/include/pca9685_timing.h
+- artifacts/firmware/src/pca9685_timing.c
+- artifacts/firmware/src/main.cpp
+- artifacts/firmware/platformio.ini

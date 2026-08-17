@@ -1,0 +1,27 @@
+id: deepee-repair-007
+suite: repair
+difficulty: hard
+timeout_minutes: 45
+required_tools:
+- gcc
+submission_paths:
+- firmware/src/cbor_uint.c
+required_artifacts:
+- path: firmware/src/cbor_uint.c
+  kind: file
+checks:
+- type: artifact_presence
+  name: repaired_cbor_uint_exists
+- type: starter_integrity
+  name: cbor_uint_contract_unchanged
+  protected_globs:
+  - firmware/src/cbor_uint.h
+  - firmware/Makefile
+- type: c_unit_tests
+  name: cbor_uint_behavior
+  sources:
+  - firmware/src/cbor_uint.c
+  test_sources:
+  - verifier/test_cbor_uint.c
+  include_dirs:
+  - firmware/src

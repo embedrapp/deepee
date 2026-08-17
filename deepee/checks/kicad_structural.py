@@ -193,8 +193,14 @@ def run_kicad_schematic_structure(check: Dict[str, Any], task, run_dir: Path, op
     )
 
 
-def _net_id(node: List[Any]) -> str:
-    return atom(child(node, "net"))
+def _net_name(node: List[Any], legacy_nets: Dict[str, str]) -> str:
+    net = child(node, "net")
+    if not net:
+        return ""
+    # KiCad 9 and earlier serialize ``(net 1 "GND")`` and define a
+    # top-level net table.  KiCad 10 serializes ``(net "GND")`` directly on
+    # pads and copper items and omits that table.
+    return atom(net, 2) or legacy_nets.get(atom(net, 1), atom(net, 1))
 
 
 def run_kicad_pcb_structure(check: Dict[str, Any], task, run_dir: Path, options: Dict[str, Any]) -> Dict[str, Any]:
@@ -232,16 +238,16 @@ def run_kicad_pcb_structure(check: Dict[str, Any], task, run_dir: Path, options:
                 mounting_holes += 1
             pad_net = child(pad, "net")
             if pad_net:
-                name = atom(pad_net, 2) or nets.get(atom(pad_net, 1), "")
+                name = _net_name(pad, nets)
                 if name:
                     pad_nets[name] = pad_nets.get(name, 0) + 1
                     if reference:
                         pin_nets[f"{reference}.{atom(pad, 1)}"] = name
 
-    routed_ids = {_net_id(item) for item in segments + vias if _net_id(item)}
-    routed_names = {nets.get(net_id, net_id) for net_id in routed_ids}
-    zone_names = {atom(child(zone, "net_name")) or nets.get(_net_id(zone), "") for zone in zones}
+    routed_names = {_net_name(item, nets) for item in segments + vias if _net_name(item, nets)}
+    zone_names = {atom(child(zone, "net_name")) or _net_name(zone, nets) for zone in zones}
     route_evidence = routed_names | zone_names
+    net_names = set(nets.values()) | set(pad_nets) | route_evidence
     keepouts = [zone for zone in zones if child(zone, "keepout")]
     dimensions = _outline_dimensions(design)
 
@@ -277,7 +283,7 @@ def run_kicad_pcb_structure(check: Dict[str, Any], task, run_dir: Path, options:
             "actual": actual_net,
         })
     for pattern in check.get("required_routed_nets") or []:
-        matching_nets = [name for name in nets.values() if re.search(str(pattern), name, re.IGNORECASE)]
+        matching_nets = [name for name in net_names if re.search(str(pattern), name, re.IGNORECASE)]
         has_pad = any(name in pad_nets for name in matching_nets)
         has_route = any(name in route_evidence for name in matching_nets)
         subchecks.append({"name": f"routed_net:{pattern}", "passed": bool(matching_nets and has_pad and has_route), "matched": matching_nets, "has_pad": has_pad, "has_route": has_route})
@@ -292,7 +298,7 @@ def run_kicad_pcb_structure(check: Dict[str, Any], task, run_dir: Path, options:
             "footprint_count": len(footprints),
             "segment_count": len(segments),
             "via_count": len(vias),
-            "net_count": len(nets),
+            "net_count": len(net_names),
             "routed_nets": sorted(route_evidence),
             "components": component_records,
             "pin_nets": pin_nets,

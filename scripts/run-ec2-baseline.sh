@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${repo_root}"
+agent_config="${DEEPEE_AGENT_CONFIG:-agents/codex-gpt-5.6-sol-xhigh.yaml}"
 
 if [[ "$(uname -m)" != "x86_64" ]]; then
   echo "DeepEE release images target linux/amd64; use an x86_64 EC2 instance." >&2
@@ -17,7 +18,12 @@ if ! docker buildx version >/dev/null 2>&1; then
   exit 2
 fi
 
-if [[ -z "${CODEX_API_KEY:-}" ]]; then
+if [[ "${DEEPEE_CHATGPT_AUTH:-0}" == "1" ]]; then
+  if [[ ! -s "${CODEX_HOME:-${HOME}/.codex}/auth.json" ]]; then
+    echo "Codex ChatGPT authentication is missing. Run codex login --device-auth first." >&2
+    exit 2
+  fi
+elif [[ -z "${CODEX_API_KEY:-}" ]]; then
   echo "Set CODEX_API_KEY. The restricted agent network supports API-key authentication only." >&2
   exit 2
 fi
@@ -31,14 +37,14 @@ make test
 make image
 make image-smoke
 make validate-reference
-make agent-network-up
+DEEPEE_CHATGPT_AUTH="${DEEPEE_CHATGPT_AUTH:-0}" make agent-network-up
 trap 'make agent-network-down >/dev/null 2>&1 || true' EXIT
-make doctor
+python3 -m deepee.cli doctor --strict-tools --agent "${agent_config}"
 
 if [[ "$#" -eq 0 ]]; then
   set -- --task deepee-repair-001
 fi
 
 deepee benchmark \
-  --agent agents/codex-gpt-5.6-sol-xhigh.yaml \
+  --agent "${agent_config}" \
   "$@"

@@ -9,4 +9,4 @@ For a valid frame, round to the nearest output unit using:
 - temperature in milli-degrees Celsius: `-45000 + 175000 * raw / 65535`;
 - relative humidity in milli-percent: `100000 * raw / 65535`.
 
-Do not change `sht3x_decode.h`, `main.cpp`, or `platformio.ini`. Submit the completed C file in place. It must pass verifier-owned native vectors and the ESP32-S2 target build.
+Do not change `sht3x_decode.h`, `main.cpp`, or `platformio.ini`. Submit the completed C file in place and keep it compatible with the ESP32-S2 target build.

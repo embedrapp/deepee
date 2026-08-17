@@ -1,0 +1,3 @@
+required:
+- artifacts/pca9306-i2c-level-shifter.kicad_pcb
+- artifacts/pca9306-i2c-level-shifter.kicad_pro

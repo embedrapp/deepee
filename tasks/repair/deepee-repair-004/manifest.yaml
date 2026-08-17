@@ -1,0 +1,27 @@
+id: deepee-repair-004
+suite: repair
+difficulty: hard
+timeout_minutes: 45
+required_tools:
+- gcc
+submission_paths:
+- firmware/src/slip_decode.c
+required_artifacts:
+- path: firmware/src/slip_decode.c
+  kind: file
+checks:
+- type: artifact_presence
+  name: repaired_slip_decode_exists
+- type: starter_integrity
+  name: slip_decode_contract_unchanged
+  protected_globs:
+  - firmware/src/slip_decode.h
+  - firmware/Makefile
+- type: c_unit_tests
+  name: slip_decode_behavior
+  sources:
+  - firmware/src/slip_decode.c
+  test_sources:
+  - verifier/test_slip_decode.c
+  include_dirs:
+  - firmware/src

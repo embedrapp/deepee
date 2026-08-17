@@ -1,0 +1,3 @@
+required:
+- artifacts/ne555-astable.kicad_sch
+- artifacts/ne555-astable.kicad_pro

@@ -1,10 +1,10 @@
-base_image=ubuntu:24.04@sha256:4fbb8e6a8395de5a7550b33509421a2bafbc0aab6c06ba2cef9ebffbc7092d90
+base_image=kicad/kicad:10.0.4@sha256:770e2fa006695077b5ba218742d5c3137896af91257b2ca971243fa56b01bb86
 container_platform=linux/amd64
 agent_egress=api.openai.com:443-only
-kicad=10.0.4~ubuntu24.04.1
-kicad_symbols=10.0.4~ubuntu24.04.1
-kicad_footprints=10.0.4~ubuntu24.04.1
-python=3.12
+kicad=10.0.4
+kicad_symbols=10.0.4
+kicad_footprints=10.0.4
+python=3.13
 pyyaml=6.0.3
 jsonschema=4.25.1
 platformio=6.1.19

@@ -1,0 +1,5 @@
+required:
+- artifacts/firmware/include/ina219_decode.h
+- artifacts/firmware/src/ina219_decode.c
+- artifacts/firmware/src/main.cpp
+- artifacts/firmware/platformio.ini

@@ -88,9 +88,9 @@ def verify_task_in_container(
             "--env",
             "DEEPEE_VERIFICATION_WORKDIR=/verification/work",
             "--env",
-            "HOME=/tmp/deepee-home",
+            "HOME=/home/benchmark",
             "--env",
-            "XDG_CONFIG_HOME=/tmp/deepee-config",
+            "XDG_CONFIG_HOME=/home/benchmark/.config",
             "--env",
             "PLATFORMIO_SETTING_ENABLE_TELEMETRY=no",
             "--env",
@@ -98,6 +98,15 @@ def verify_task_in_container(
             "--tmpfs",
             "/tmp:rw,nosuid,nodev,size=1g",
             image,
+            "sh",
+            "-c",
+            (
+                'verification_status=0; "$@" || verification_status=$?; '
+                "find /verification/work -mindepth 1 -exec chmod a+rwX {} +; "
+                "chmod a+rw /verification/score.json 2>/dev/null || true; "
+                'exit "$verification_status"'
+            ),
+            "deepee-verifier",
             "deepee",
             "verify",
             "--task",

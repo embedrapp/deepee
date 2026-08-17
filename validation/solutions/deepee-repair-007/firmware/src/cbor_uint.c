@@ -1,0 +1,2 @@
+#include "cbor_uint.h"
+bool cbor_decode_uint(const uint8_t*d,size_t n,uint64_t*v,size_t*c){if(!d||!v||!c||!n||(d[0]>>5)!=0)return false;uint8_t a=d[0]&31;uint64_t x;size_t k;if(a<24){x=a;k=1;}else{size_t bytes=a==24?1:a==25?2:a==26?4:a==27?8:0;if(!bytes||n<1+bytes)return false;x=0;for(size_t i=0;i<bytes;i++)x=(x<<8)|d[1+i];if((bytes==1&&x<24)||(bytes==2&&x<=0xff)||(bytes==4&&x<=0xffff)||(bytes==8&&x<=0xffffffffULL))return false;k=1+bytes;}*v=x;*c=k;return true;}

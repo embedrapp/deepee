@@ -9,8 +9,15 @@ from contextlib import suppress
 
 
 ALLOWED_HOSTS = frozenset({"api.openai.com"})
+CHATGPT_ALLOWED_HOSTS = frozenset({"auth.openai.com", "chatgpt.com"})
 HEADER_LIMIT = 16 * 1024
 CONNECT_TIMEOUT_SECONDS = 15
+
+
+def _allowed_hosts() -> frozenset[str]:
+    if os.environ.get("DEEPEE_CHATGPT_AUTH") == "1":
+        return ALLOWED_HOSTS | CHATGPT_ALLOWED_HOSTS
+    return ALLOWED_HOSTS
 
 
 async def _close(writer: asyncio.StreamWriter) -> None:
@@ -57,7 +64,7 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
         request_line = header.split(b"\r\n", 1)[0].decode("ascii", errors="strict")
         method, authority, version = request_line.split(" ")
         host, port = _parse_authority(authority)
-        if method != "CONNECT" or not version.startswith("HTTP/1.") or host not in ALLOWED_HOSTS:
+        if method != "CONNECT" or not version.startswith("HTTP/1.") or host not in _allowed_hosts():
             await _reply(writer, "403 Forbidden")
             return
 
