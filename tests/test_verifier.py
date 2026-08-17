@@ -75,7 +75,13 @@ def _score(
         "metadata": {
             "hashes": {"task": "task", "benchmark": benchmark_hash, "submission": "submission", "artifacts": "artifacts"},
             "benchmark_task_ids": list(required_tasks),
-            "run": {"created_at": created_at, "run_id": run_id, "usage": {}, "agent_config_hash": "config-a"},
+            "run": {
+                "created_at": created_at,
+                "run_id": run_id,
+                "usage": {},
+                "cost_estimate": {"total_usd": 1.25},
+                "agent_config_hash": "config-a",
+            },
         },
     }
 
@@ -88,6 +94,11 @@ class VerifierTests(unittest.TestCase):
             run_dir = root / "run"
             (run_dir / "artifacts").mkdir(parents=True)
             (run_dir / "artifacts" / "result.txt").write_text("ok\n", encoding="utf-8")
+            (run_dir / ".deepee").mkdir()
+            (run_dir / ".deepee" / "run.json").write_text(
+                json.dumps({"cost_estimate": {"total_usd": 1.25}}),
+                encoding="utf-8",
+            )
             passed = verify_task("sample-fw", run_dir, root=root)
             self.assertTrue(passed["passed"])
             self.assertEqual(passed["score"], 1.0)
@@ -96,6 +107,7 @@ class VerifierTests(unittest.TestCase):
             self.assertEqual(passed["requirements"][0]["id"], "result-exists")
             self.assertEqual(passed["score_vector"]["deliverable"]["pass_rate"], 1.0)
             self.assertEqual(len(passed["metadata"]["hashes"]["decision"]), 64)
+            self.assertEqual(passed["metadata"]["run"]["cost_estimate"]["total_usd"], 1.25)
             repeated = verify_task("sample-fw", run_dir, root=root)
             self.assertEqual(
                 passed["metadata"]["hashes"]["decision"],
@@ -248,8 +260,10 @@ checks:
             self.assertEqual(report["total_runs"], 3)
             self.assertEqual(report["total_publishable_runs"], 2)
             self.assertEqual(report["total_first_attempts"], 1)
+            self.assertEqual(report["total_estimated_api_cost_usd"], 3.75)
             cohort = next(iter(report["by_agent"].values()))
             self.assertEqual(cohort["pass_at_1"], 0.0)
+            self.assertEqual(cohort["estimated_api_cost_usd"], 1.25)
             self.assertTrue(cohort["complete"])
             publishable = [row for row in report["runs"] if row["publishable"]]
             self.assertTrue(publishable[0]["counts_for_pass_at_1"])
