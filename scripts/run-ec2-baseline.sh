@@ -37,6 +37,7 @@ make test
 make image
 make image-smoke
 make validate-reference
+make validate-adequacy
 DEEPEE_CHATGPT_AUTH="${DEEPEE_CHATGPT_AUTH:-0}" make agent-network-up
 trap 'make agent-network-down >/dev/null 2>&1 || true' EXIT
 python3 -m deepee.cli doctor --strict-tools --agent "${agent_config}"

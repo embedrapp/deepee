@@ -19,6 +19,7 @@ from deepee.checks.kicad_structural import run_kicad_pcb_structure
 from deepee.runner import _parse_jsonl, prepare_run
 from deepee.task import iter_tasks, resolve_task
 from deepee.verifier import verify_task
+from validation.adequacy import mutate_requirement
 from validation.reference import SOLUTIONS, assemble_reference_run
 
 
@@ -49,11 +50,14 @@ void scheduler_advance(PeriodicScheduler *scheduler, uint32_t now_ms) {
 class PublicBenchmarkTests(unittest.TestCase):
     def test_release_contract_is_binary_kicad_10_and_forty_eight_tasks(self) -> None:
         release = yaml.safe_load((REPO_ROOT / "benchmark.yaml").read_text(encoding="utf-8"))
-        self.assertEqual(release["version"], "1.1.0")
+        self.assertEqual(release["version"], "1.2.0")
         self.assertEqual(release["toolchain"]["kicad"], "10.0.4")
         self.assertEqual(release["toolchain"]["platformio"], "6.1.19")
         self.assertEqual(release["score_policy"]["primary_metric"], "pass_at_1")
-        self.assertEqual(release["score_policy"]["task_result"], "all_checks_must_pass")
+        self.assertEqual(release["schema_version"], "2.0")
+        self.assertEqual(release["score_policy"]["task_result"], "all_critical_requirements_must_pass")
+        self.assertEqual(release["score_policy"]["diagnostic_metric"], "requirement_vector")
+        self.assertEqual(release["score_policy"]["validator_release_gate"], "all_critical_mutants_killed")
         self.assertEqual(release["network_policy"]["agent_egress"], ["api.openai.com:443"])
         self.assertEqual(release["network_policy"]["verifier_egress"], [])
         expected = {
@@ -77,8 +81,8 @@ class PublicBenchmarkTests(unittest.TestCase):
             )
         self.assertEqual(metadata["command"][0], "docker")
         self.assertIn("--interactive", metadata["command"])
-        self.assertIn("deepee-agent:1.1.0", metadata["command"])
-        self.assertEqual(metadata["container"]["verification_image"], "deepee-verifier:1.1.0")
+        self.assertIn("deepee-agent:1.2.0", metadata["command"])
+        self.assertEqual(metadata["container"]["verification_image"], "deepee-verifier:1.2.0")
         self.assertFalse(metadata["container"]["mount_codex_home"])
         self.assertFalse(metadata["container"]["mount_codex_auth"])
         self.assertEqual(metadata["container"]["network"], "deepee-agent-internal")
@@ -211,6 +215,17 @@ class PublicBenchmarkTests(unittest.TestCase):
                 item["name"] for item in skew["details"]["subchecks"] if not item["passed"]
             }
             self.assertIn("matched_length:usb2-data-pair", skew_failures)
+
+    @unittest.skipUnless(shutil.which("cc"), "C compiler required")
+    def test_adequacy_mutant_restores_and_detects_buggy_repair_code(self) -> None:
+        task = resolve_task("deepee-repair-001", REPO_ROOT)
+        requirement = next(item for item in task.manifest["requirements"] if item["layer"] == "behavior")
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = assemble_reference_run(task, Path(tmp) / "mutant")
+            mutation = mutate_requirement(task, requirement, run_dir)
+            self.assertEqual(mutation["check_type"], "c_unit_tests")
+            score = verify_task(task.id, run_dir, root=REPO_ROOT)
+            self.assertIn(requirement["id"], score["critical_requirement_failures"])
 
     def test_kicad_checks_treat_warnings_as_violations(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

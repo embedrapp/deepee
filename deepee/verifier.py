@@ -74,6 +74,7 @@ def _requirement_results(task, checks: List[Dict[str, Any]]) -> List[Dict[str, A
             "critical": bool(requirement.get("critical", True)),
             "check": check_name,
             "passed": bool(check_result.get("passed")),
+            "skipped": bool(check_result.get("skipped")),
             "score": float(check_result.get("score") or 0.0),
             "message": str(check_result.get("message") or ""),
             "subrequirements": subrequirements,
@@ -102,6 +103,7 @@ def _decision_hash(task_id: str, requirements: List[Dict[str, Any]]) -> str:
                 "id": item["id"],
                 "critical": item["critical"],
                 "passed": item["passed"],
+                "skipped": item["skipped"],
                 "score": item["score"],
                 "subrequirements": [
                     {"id": subitem["id"], "passed": subitem["passed"]}

@@ -73,3 +73,5 @@ jobs:
           pio run --project-dir /smoke/firmware'
       - name: Verify every private reference submission offline
         run: python3 -m validation.reference --container-image deepee-verifier:1.1.0
+      - name: Prove every critical requirement rejects its mutant
+        run: python3 -m validation.adequacy --container-image deepee-verifier:1.1.0

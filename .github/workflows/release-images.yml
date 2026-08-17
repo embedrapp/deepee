@@ -28,6 +28,7 @@ jobs:
       - run: docker buildx build --load --pull=false --platform linux/amd64 --target verifier --tag deepee-verifier:1.1.0 --file docker/Dockerfile .
       - run: make image-smoke AGENT_IMAGE=deepee-agent:1.1.0 VERIFIER_IMAGE=deepee-verifier:1.1.0
       - run: python -m validation.reference --container-image deepee-verifier:1.1.0
+      - run: python -m validation.adequacy --container-image deepee-verifier:1.1.0
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Resolve image names
