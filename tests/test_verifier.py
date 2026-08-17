@@ -96,6 +96,11 @@ class VerifierTests(unittest.TestCase):
             self.assertEqual(passed["requirements"][0]["id"], "result-exists")
             self.assertEqual(passed["score_vector"]["deliverable"]["pass_rate"], 1.0)
             self.assertEqual(len(passed["metadata"]["hashes"]["decision"]), 64)
+            repeated = verify_task("sample-fw", run_dir, root=root)
+            self.assertEqual(
+                passed["metadata"]["hashes"]["decision"],
+                repeated["metadata"]["hashes"]["decision"],
+            )
 
             (run_dir / "artifacts" / "result.txt").unlink()
             failed = verify_task("sample-fw", run_dir, root=root)

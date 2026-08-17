@@ -1,7 +1,7 @@
-.PHONY: list lint doctor test image image-agent image-verifier image-smoke agent-network-up agent-network-down agent-network-smoke validate-reference prepare-example verify-example report compile
+.PHONY: list lint doctor test image image-agent image-verifier image-smoke agent-network-up agent-network-down agent-network-smoke validate-reference validate-adequacy prepare-example verify-example report compile
 
-AGENT_IMAGE ?= deepee-agent:1.1.0
-VERIFIER_IMAGE ?= deepee-verifier:1.1.0
+AGENT_IMAGE ?= deepee-agent:1.2.0
+VERIFIER_IMAGE ?= deepee-verifier:1.2.0
 PLATFORM ?= linux/amd64
 DOCKER ?= docker
 
@@ -51,6 +51,9 @@ agent-network-smoke:
 
 validate-reference:
 	python3 -m validation.reference --container-image $(VERIFIER_IMAGE) --engine $(DOCKER)
+
+validate-adequacy:
+	python3 -m validation.adequacy --container-image $(VERIFIER_IMAGE) --engine $(DOCKER)
 
 report:
 	python3 -m deepee.cli report
