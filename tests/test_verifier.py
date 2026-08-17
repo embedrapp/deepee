@@ -27,8 +27,15 @@ def _make_artifact_task(root: Path, task_id: str = "sample-fw") -> Path:
     (task_dir / "manifest.yaml").write_text(
         f"""id: {task_id}
 suite: firmware
+contract_version: '2.0'
 required_artifacts:
   - {{path: artifacts/result.txt, kind: file}}
+requirements:
+  - id: result-exists
+    description: Produce the required result artifact.
+    layer: deliverable
+    critical: true
+    check: result_exists
 checks:
   - type: artifact_presence
     name: result_exists
@@ -84,12 +91,18 @@ class VerifierTests(unittest.TestCase):
             passed = verify_task("sample-fw", run_dir, root=root)
             self.assertTrue(passed["passed"])
             self.assertEqual(passed["score"], 1.0)
+            self.assertEqual(passed["schema_version"], "2.0")
+            self.assertEqual(passed["critical_requirement_failures"], [])
+            self.assertEqual(passed["requirements"][0]["id"], "result-exists")
+            self.assertEqual(passed["score_vector"]["deliverable"]["pass_rate"], 1.0)
+            self.assertEqual(len(passed["metadata"]["hashes"]["decision"]), 64)
 
             (run_dir / "artifacts" / "result.txt").unlink()
             failed = verify_task("sample-fw", run_dir, root=root)
             self.assertFalse(failed["passed"])
             self.assertEqual(failed["score"], 0.0)
             self.assertEqual(failed["failures"], ["result_exists"])
+            self.assertEqual(failed["critical_requirement_failures"], ["result-exists"])
 
     def test_incomplete_automated_agent_run_fails(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -114,9 +127,16 @@ class VerifierTests(unittest.TestCase):
             (task_dir / "manifest.yaml").write_text(
                 """id: sample-fw
 suite: firmware
+contract_version: '2.0'
 pass_threshold: 0.8
 required_artifacts:
   - {path: artifacts/result.txt, kind: file}
+requirements:
+  - id: invalid-check
+    description: Exercise lint rejection.
+    layer: deliverable
+    critical: true
+    check: definitely_not_a_check
 checks:
   - type: definitely_not_a_check
     weight: 1

@@ -6,6 +6,23 @@ required_tools: [gcc]
 submission_paths: [firmware/src/adc_scale.c]
 required_artifacts:
   - {path: firmware/src/adc_scale.c, kind: file}
+contract_version: '2.0'
+requirements:
+- id: repaired-adc-scaler-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: repaired_adc_scaler_exists
+- id: adc-scaler-contract-unchanged
+  description: Preserve the declared protected starter interface and project files.
+  layer: integrity
+  critical: true
+  check: adc_scaler_contract_unchanged
+- id: overflow-safe-adc-scaling
+  description: Satisfy the verifier-owned behavioral and boundary test vectors.
+  layer: behavior
+  critical: true
+  check: overflow_safe_adc_scaling
 checks:
   - type: artifact_presence
     name: repaired_adc_scaler_exists

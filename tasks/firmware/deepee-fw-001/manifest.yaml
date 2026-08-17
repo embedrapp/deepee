@@ -9,6 +9,28 @@ required_artifacts:
   - {path: artifacts/firmware/include/i2c_recovery.h, kind: file}
   - {path: artifacts/firmware/src/i2c_recovery.c, kind: file}
   - {path: artifacts/firmware/src/main.cpp, kind: file}
+contract_version: '2.0'
+requirements:
+- id: firmware-project-complete
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: firmware_project_complete
+- id: esp32-integration-unchanged
+  description: Preserve the declared protected starter interface and project files.
+  layer: integrity
+  critical: true
+  check: esp32_integration_unchanged
+- id: i2c-recovery-policy
+  description: Satisfy the verifier-owned behavioral and boundary test vectors.
+  layer: behavior
+  critical: true
+  check: i2c_recovery_policy
+- id: esp32-s2-firmware-builds
+  description: Build the submitted firmware for the declared target without errors.
+  layer: build
+  critical: true
+  check: esp32_s2_firmware_builds
 checks:
   - type: artifact_presence
     name: firmware_project_complete

@@ -17,6 +17,17 @@ DEPRECATED_KEYS = {
     "weight",
 }
 
+REQUIREMENT_LAYERS = {
+    "behavior",
+    "build",
+    "deliverable",
+    "electrical",
+    "integrity",
+    "logical",
+    "manufacturability",
+    "physical",
+}
+
 
 def _error(errors: List[Dict[str, Any]], task: Task, message: str) -> None:
     errors.append({"task_id": task.id, "path": str(task.path), "message": message})
@@ -53,6 +64,55 @@ def _validate_check(task: Task, check: Dict[str, Any], errors: List[Dict[str, An
             _error(errors, task, f"check {name} has unsafe {key}: {value}")
 
 
+def _validate_requirements(task: Task, manifest: Dict[str, Any], errors: List[Dict[str, Any]]) -> None:
+    if str(manifest.get("contract_version") or "") != "2.0":
+        _error(errors, task, "contract_version must be 2.0")
+
+    requirements = manifest.get("requirements")
+    if not isinstance(requirements, list) or not requirements:
+        _error(errors, task, "requirements must be a non-empty list")
+        return
+
+    checks = manifest.get("checks") or []
+    check_names = [
+        str(check.get("name") or check.get("type"))
+        for check in checks
+        if isinstance(check, dict)
+    ]
+    requirement_ids: List[str] = []
+    referenced_checks: List[str] = []
+    for requirement in requirements:
+        if not isinstance(requirement, dict):
+            _error(errors, task, "requirement must be a mapping")
+            continue
+        requirement_id = str(requirement.get("id") or "")
+        requirement_ids.append(requirement_id)
+        if not requirement_id:
+            _error(errors, task, "requirement is missing id")
+        elif any(character not in "abcdefghijklmnopqrstuvwxyz0123456789._-" for character in requirement_id):
+            _error(errors, task, f"requirement id is not stable lowercase syntax: {requirement_id}")
+        description = str(requirement.get("description") or "").strip()
+        if not description:
+            _error(errors, task, f"requirement {requirement_id or '<unknown>'} is missing description")
+        layer = str(requirement.get("layer") or "")
+        if layer not in REQUIREMENT_LAYERS:
+            _error(errors, task, f"requirement {requirement_id or '<unknown>'} has unknown layer: {layer}")
+        if not isinstance(requirement.get("critical"), bool):
+            _error(errors, task, f"requirement {requirement_id or '<unknown>'} critical must be boolean")
+        check_name = str(requirement.get("check") or "")
+        referenced_checks.append(check_name)
+        if check_name not in check_names:
+            _error(errors, task, f"requirement {requirement_id or '<unknown>'} references unknown check: {check_name}")
+
+    for duplicate in sorted({item for item in requirement_ids if item and requirement_ids.count(item) > 1}):
+        _error(errors, task, f"duplicate requirement id: {duplicate}")
+    for duplicate in sorted({item for item in referenced_checks if item and referenced_checks.count(item) > 1}):
+        _error(errors, task, f"check is mapped by multiple requirements: {duplicate}")
+    for check_name in check_names:
+        if check_name not in referenced_checks:
+            _error(errors, task, f"check is not mapped to a requirement: {check_name}")
+
+
 def lint_tasks(root: Optional[Path] = None) -> Dict[str, Any]:
     tasks = list(iter_tasks(root))
     errors: List[Dict[str, Any]] = []
@@ -77,6 +137,8 @@ def lint_tasks(root: Optional[Path] = None) -> Dict[str, Any]:
             _error(errors, task, "expected_artifacts.yaml is missing")
         for key in sorted(DEPRECATED_KEYS & set(manifest)):
             _error(errors, task, f"manifest uses removed key: {key}")
+
+        _validate_requirements(task, manifest, errors)
 
         artifacts = manifest.get("required_artifacts")
         if not isinstance(artifacts, list) or not artifacts:

@@ -11,6 +11,28 @@ required_artifacts:
   kind: file
 - path: artifacts/ina219-current-monitor.kicad_pro
   kind: file
+contract_version: '2.0'
+requirements:
+- id: completed-board-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: completed_board_exists
+- id: project-rules-unchanged
+  description: Preserve the declared protected starter interface and project files.
+  layer: integrity
+  critical: true
+  check: project_rules_unchanged
+- id: layout-contract
+  description: Satisfy the declared native PCB structure and routing contract.
+  layer: physical
+  critical: true
+  check: layout_contract
+- id: clean-drc
+  description: Pass KiCad design-rules checking without errors or warnings.
+  layer: manufacturability
+  critical: true
+  check: clean_drc
 checks:
 - type: artifact_presence
   name: completed_board_exists

@@ -9,6 +9,23 @@ submission_paths:
 required_artifacts:
 - path: firmware/src/time32.c
   kind: file
+contract_version: '2.0'
+requirements:
+- id: repaired-time32-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: repaired_time32_exists
+- id: time32-contract-unchanged
+  description: Preserve the declared protected starter interface and project files.
+  layer: integrity
+  critical: true
+  check: time32_contract_unchanged
+- id: time32-behavior
+  description: Satisfy the verifier-owned behavioral and boundary test vectors.
+  layer: behavior
+  critical: true
+  check: time32_behavior
 checks:
 - type: artifact_presence
   name: repaired_time32_exists

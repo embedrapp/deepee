@@ -22,6 +22,9 @@ def _result_row(path: Path, payload: Dict[str, Any]) -> Dict[str, Any]:
         "suite": payload["suite"],
         "agent": payload.get("agent", {}),
         "score": payload["score"],
+        "quality_score": payload.get("quality_score"),
+        "score_vector": payload.get("score_vector", {}),
+        "critical_requirement_failures": payload.get("critical_requirement_failures", []),
         "passed": bool(payload["passed"]),
         "publishable": bool(payload.get("publishable")),
         "run_id": run.get("run_id"),
@@ -130,7 +133,7 @@ def collect_results(results_dir: Optional[Path] = None, output: Optional[Path] =
         }
 
     report = {
-        "schema_version": "1.0",
+        "schema_version": "2.0",
         "generated_at": utc_timestamp(),
         "total_runs": len(rows),
         "total_publishable_runs": sum(1 for row in rows if row["publishable"]),

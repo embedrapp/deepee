@@ -6,6 +6,28 @@ required_tools: [kicad-cli]
 submission_paths: [artifacts/mcp9808-breakout.kicad_sch]
 required_artifacts:
   - {path: artifacts/mcp9808-breakout.kicad_sch, kind: file}
+contract_version: '2.0'
+requirements:
+- id: designed-schematic-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: designed_schematic_exists
+- id: breakout-component-contract
+  description: Satisfy the declared native schematic component and net contract.
+  layer: logical
+  critical: true
+  check: breakout_component_contract
+- id: breakout-connectivity
+  description: Satisfy the independently exported electrical netlist contract.
+  layer: logical
+  critical: true
+  check: breakout_connectivity
+- id: clean-erc
+  description: Pass KiCad electrical-rules checking without errors or warnings.
+  layer: electrical
+  critical: true
+  check: clean_erc
 checks:
   - type: artifact_presence
     name: designed_schematic_exists

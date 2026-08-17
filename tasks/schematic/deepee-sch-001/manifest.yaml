@@ -6,6 +6,28 @@ required_tools: [kicad-cli]
 submission_paths: [artifacts/power-input.kicad_sch]
 required_artifacts:
   - {path: artifacts/power-input.kicad_sch, kind: file}
+contract_version: '2.0'
+requirements:
+- id: repaired-schematic-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: repaired_schematic_exists
+- id: fixed-components-preserved
+  description: Satisfy the declared native schematic component and net contract.
+  layer: logical
+  critical: true
+  check: fixed_components_preserved
+- id: power-pin-connectivity
+  description: Satisfy the independently exported electrical netlist contract.
+  layer: logical
+  critical: true
+  check: power_pin_connectivity
+- id: clean-erc
+  description: Pass KiCad electrical-rules checking without errors or warnings.
+  layer: electrical
+  critical: true
+  check: clean_erc
 checks:
   - type: artifact_presence
     name: repaired_schematic_exists

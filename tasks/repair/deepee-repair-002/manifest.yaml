@@ -6,6 +6,23 @@ required_tools: [gcc]
 submission_paths: [firmware/src/ring_buffer.c]
 required_artifacts:
   - {path: firmware/src/ring_buffer.c, kind: file}
+contract_version: '2.0'
+requirements:
+- id: repaired-ring-buffer-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: repaired_ring_buffer_exists
+- id: ring-buffer-contract-unchanged
+  description: Preserve the declared protected starter interface and project files.
+  layer: integrity
+  critical: true
+  check: ring_buffer_contract_unchanged
+- id: wrapped-fifo-behavior
+  description: Satisfy the verifier-owned behavioral and boundary test vectors.
+  layer: behavior
+  critical: true
+  check: wrapped_fifo_behavior
 checks:
   - type: artifact_presence
     name: repaired_ring_buffer_exists
