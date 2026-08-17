@@ -44,6 +44,25 @@ smoke() {
     return 1
   fi
 
+  if [[ "${DEEPEE_CHATGPT_AUTH:-0}" == "1" ]]; then
+    for authority in auth.openai.com chatgpt.com; do
+      status="$("${docker_cmd}" run --rm --network "${network}" \
+        --env "HTTPS_PROXY=${proxy_url}" --env "NO_PROXY=" \
+        "${agent_image}" curl --connect-timeout 5 --max-time 10 --silent --show-error --output /dev/null \
+        --write-out '%{http_code}' "https://${authority}/")"
+      if [[ "${status}" == "000" ]]; then
+        echo "ChatGPT subscription egress could not reach ${authority}:443." >&2
+        return 1
+      fi
+    done
+  elif "${docker_cmd}" run --rm --network "${network}" \
+    --env "HTTPS_PROXY=${proxy_url}" --env "NO_PROXY=" \
+    "${agent_image}" curl --connect-timeout 5 --max-time 10 --silent --show-error \
+    https://auth.openai.com/ >/dev/null 2>&1; then
+    echo "API-key profile unexpectedly reached auth.openai.com." >&2
+    return 1
+  fi
+
   if "${docker_cmd}" run --rm --network "${network}" \
     --env "HTTPS_PROXY=${proxy_url}" --env "NO_PROXY=" \
     "${agent_image}" curl --connect-timeout 5 --max-time 10 --fail --silent --show-error https://github.com/ >/dev/null 2>&1; then

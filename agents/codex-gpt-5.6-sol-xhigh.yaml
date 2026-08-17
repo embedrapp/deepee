@@ -4,6 +4,11 @@ system: codex
 model: gpt-5.6-sol
 effort: xhigh
 tool_profile: deepee-kicad-toolchain
+network_policy:
+  profile: api_key
+  authentication: api_key
+  agent_egress: ["api.openai.com:443"]
+  verifier_egress: []
 context_file: agents/KICAD_CONTEXT.md
 runner:
   type: command

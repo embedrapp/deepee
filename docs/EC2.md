@@ -25,11 +25,18 @@ Log out and back in once so Docker group membership applies. The script installs
 
 ## Authenticate and run
 
-Use a short-lived API key. ChatGPT-account auth files are intentionally unsupported because benchmark agent egress is restricted to `api.openai.com:443`:
+For the API-key profile, use a short-lived key. Its proxy allowlist contains only `api.openai.com:443`:
 
 ```bash
 export CODEX_API_KEY='...'
 ./scripts/run-ec2-baseline.sh --task deepee-repair-001
+```
+
+For the ChatGPT-subscription profile, authenticate Codex on the host and run the dedicated wrapper. The wrapper mounts only `auth.json` read-only and selects an allowlist containing `api.openai.com:443`, `auth.openai.com:443`, and `chatgpt.com:443`:
+
+```bash
+codex login --device-auth
+./scripts/run-ec2-chatgpt-baseline.sh --task deepee-repair-001
 ```
 
 For the full baseline:
@@ -38,7 +45,7 @@ For the full baseline:
 ./scripts/run-ec2-baseline.sh --all-tasks
 ```
 
-The run script creates a Python virtual environment, runs lightweight harness tests, builds both pinned images, executes image and network smoke checks, validates one private known-good submission for every discovered task, runs doctor, and then starts exactly one benchmark attempt per selected task. Any failed reference ERC, DRC, native test, target build, OpenAI-only proxy check, or blocked-egress check stops the run before credentials are used.
+The run script creates a Python virtual environment, runs lightweight harness tests, builds both pinned images, executes image and selected-profile network smoke checks, validates one private known-good submission for every discovered task, runs doctor, and then starts exactly one benchmark attempt per selected task. Any failed reference ERC, DRC, native test, target build, allowlist check, or blocked-egress check stops the run before credentials are used. Every run records its effective authentication/egress profile and exact allowlist.
 
 ## Prebuilt release images
 

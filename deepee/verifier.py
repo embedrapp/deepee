@@ -319,6 +319,7 @@ def verify_task(
                 "wall_time_seconds": run_metadata.get("wall_time_seconds"),
                 "usage": run_metadata.get("usage", {}),
                 "cost_estimate": run_metadata.get("cost_estimate", {}),
+                "network_policy": run_metadata.get("network_policy", {}),
                 "returncode": run_metadata.get("returncode"),
             },
         },

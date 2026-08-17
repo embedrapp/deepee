@@ -7,6 +7,9 @@ on:
 permissions:
   contents: read
 
+env:
+  DEEPEE_VERSION: "1.2.0"
+
 jobs:
   harness:
     runs-on: ubuntu-24.04
@@ -26,11 +29,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - run: docker buildx build --load --pull=false --platform linux/amd64 --target agent --tag deepee-agent:1.1.0 --file docker/Dockerfile .
-      - run: docker buildx build --load --pull=false --platform linux/amd64 --target verifier --tag deepee-verifier:1.1.0 --file docker/Dockerfile .
+      - run: docker buildx build --load --pull=false --platform linux/amd64 --target agent --tag "deepee-agent:${DEEPEE_VERSION}" --file docker/Dockerfile .
+      - run: docker buildx build --load --pull=false --platform linux/amd64 --target verifier --tag "deepee-verifier:${DEEPEE_VERSION}" --file docker/Dockerfile .
       - name: Prove authoring image isolation and toolchain
         run: |
-          docker run --rm deepee-agent:1.1.0 sh -ec '
+          docker run --rm "deepee-agent:${DEEPEE_VERSION}" sh -ec '
             test ! -e /opt/deepee/tasks
             test ! -e /opt/deepee/deepee
             test ! -e /opt/deepee/validation
@@ -42,22 +45,22 @@ jobs:
           '
       - name: Check pinned Codex flags
         run: >-
-          docker run --rm deepee-agent:1.1.0
+          docker run --rm "deepee-agent:${DEEPEE_VERSION}"
           codex exec --model gpt-5.6-sol
           --config 'model_reasoning_effort="xhigh"'
           --sandbox workspace-write --ephemeral
           --ignore-user-config --ignore-rules --json --help
       - name: Prove agent egress is limited to the OpenAI API
-        run: AGENT_IMAGE=deepee-agent:1.1.0 ./scripts/agent-network.sh smoke
+        run: AGENT_IMAGE="deepee-agent:${DEEPEE_VERSION}" ./scripts/agent-network.sh smoke
       - name: Run verifier doctor offline
-        run: docker run --rm --network none deepee-verifier:1.1.0 deepee doctor --strict-tools
+        run: docker run --rm --network none "deepee-verifier:${DEEPEE_VERSION}" deepee doctor --strict-tools
       - name: Prove verifier excludes reference solutions
-        run: docker run --rm --network none deepee-verifier:1.1.0 sh -ec 'test ! -e /opt/deepee/validation'
+        run: docker run --rm --network none "deepee-verifier:${DEEPEE_VERSION}" sh -ec 'test ! -e /opt/deepee/validation'
       - name: Parse the native KiCad starter files offline
         run: |
           docker run --rm --network none --user root \
             --tmpfs /smoke:rw,size=256m \
-            deepee-verifier:1.1.0 sh -ec '
+            "deepee-verifier:${DEEPEE_VERSION}" sh -ec '
               kicad-cli sch export netlist --format kicadxml --output /smoke/power.xml /opt/deepee/tasks/schematic/deepee-sch-001/starter/artifacts/power-input.kicad_sch
               mkdir -p /smoke/gerbers
               kicad-cli pcb export gerbers --output /smoke/gerbers /opt/deepee/tasks/pcb/deepee-pcb-001/starter/artifacts/nrf24-adapter.kicad_pcb
@@ -68,10 +71,10 @@ jobs:
         run: >-
           docker run --rm --network none --user root
           --tmpfs /smoke:rw,size=2g
-          deepee-verifier:1.1.0 sh -ec
+          "deepee-verifier:${DEEPEE_VERSION}" sh -ec
           'cp -R /opt/deepee/tasks/firmware/deepee-fw-001/starter/artifacts/firmware /smoke/firmware;
           pio run --project-dir /smoke/firmware'
       - name: Verify every private reference submission offline
-        run: python3 -m validation.reference --container-image deepee-verifier:1.1.0
+        run: python3 -m validation.reference --container-image "deepee-verifier:${DEEPEE_VERSION}"
       - name: Prove every critical requirement rejects its mutant
-        run: python3 -m validation.adequacy --container-image deepee-verifier:1.1.0
+        run: python3 -m validation.adequacy --container-image "deepee-verifier:${DEEPEE_VERSION}"

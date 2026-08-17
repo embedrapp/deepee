@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Small CONNECT proxy that exposes only the OpenAI API to agent containers."""
+"""Small CONNECT proxy that exposes only approved OpenAI authorities."""
 
 from __future__ import annotations
 

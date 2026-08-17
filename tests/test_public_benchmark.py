@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 import yaml
+from jsonschema import Draft202012Validator
 
 from deepee.archive import package_run
 from deepee.checks.kicad import run_kicad_drc, run_kicad_erc
@@ -58,7 +59,14 @@ class PublicBenchmarkTests(unittest.TestCase):
         self.assertEqual(release["score_policy"]["task_result"], "all_critical_requirements_must_pass")
         self.assertEqual(release["score_policy"]["diagnostic_metric"], "requirement_vector")
         self.assertEqual(release["score_policy"]["validator_release_gate"], "all_critical_mutants_killed")
-        self.assertEqual(release["network_policy"]["agent_egress"], ["api.openai.com:443"])
+        self.assertEqual(
+            release["network_policy"]["profiles"]["api_key"]["agent_egress"],
+            ["api.openai.com:443"],
+        )
+        self.assertEqual(
+            release["network_policy"]["profiles"]["chatgpt_subscription"]["agent_egress"],
+            ["api.openai.com:443", "auth.openai.com:443", "chatgpt.com:443"],
+        )
         self.assertEqual(release["network_policy"]["verifier_egress"], [])
         expected = {
             f"deepee-{category}-{number:03d}"
@@ -90,7 +98,61 @@ class PublicBenchmarkTests(unittest.TestCase):
         self.assertIn("NO_PROXY=", metadata["command"])
         self.assertFalse(any("dst=/root/.codex," in part for part in metadata["command"]))
         self.assertEqual(metadata["inner_command"][-1], "-")
+        self.assertEqual(metadata["network_policy"]["effective_profile"], "api_key")
+        self.assertEqual(metadata["network_policy"]["agent_egress"], ["api.openai.com:443"])
         self.assertNotIn("verification_track", metadata)
+
+    def test_chatgpt_runner_records_and_enforces_its_network_profile(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(
+            os.environ, {"DEEPEE_CHATGPT_AUTH": "1"}
+        ), mock.patch(
+            "deepee.runner._container_image_id", return_value="sha256:test"
+        ), mock.patch("deepee.runner._container_command_version", return_value="codex test"), mock.patch(
+            "deepee.runner._command_version", return_value="test"
+        ):
+            metadata = prepare_run(
+                REPO_ROOT / "agents" / "codex-gpt-5.6-sol-xhigh-chatgpt.yaml",
+                "deepee-repair-001",
+                Path(tmp) / "runs",
+                REPO_ROOT,
+            )
+            with self.assertRaisesRegex(ValueError, "does not match"):
+                prepare_run(
+                    REPO_ROOT / "agents" / "codex-gpt-5.6-sol-xhigh.yaml",
+                    "deepee-repair-001",
+                    Path(tmp) / "mismatch",
+                    REPO_ROOT,
+                )
+        self.assertEqual(metadata["network_policy"]["effective_profile"], "chatgpt_subscription")
+        self.assertEqual(
+            metadata["network_policy"]["agent_egress"],
+            ["api.openai.com:443", "auth.openai.com:443", "chatgpt.com:443"],
+        )
+
+    def test_committed_leaderboard_matches_its_public_schema(self) -> None:
+        schema = json.loads((REPO_ROOT / "leaderboard" / "schema.json").read_text(encoding="utf-8"))
+        results = json.loads((REPO_ROOT / "leaderboard" / "results.json").read_text(encoding="utf-8"))
+        Draft202012Validator(schema).validate(results)
+
+    def test_workflow_image_tags_match_the_benchmark_release(self) -> None:
+        release = yaml.safe_load((REPO_ROOT / "benchmark.yaml").read_text(encoding="utf-8"))
+        expected_declaration = f'DEEPEE_VERSION: "{release["version"]}"'
+        for workflow in ("ci.yml", "release-images.yml"):
+            text = (REPO_ROOT / ".github" / "workflows" / workflow).read_text(encoding="utf-8")
+            self.assertIn(expected_declaration, text, workflow)
+            self.assertNotIn("deepee-agent:1.1.0", text, workflow)
+            self.assertNotIn("deepee-verifier:1.1.0", text, workflow)
+
+    def test_agent_network_profiles_match_the_benchmark_contract(self) -> None:
+        release = yaml.safe_load((REPO_ROOT / "benchmark.yaml").read_text(encoding="utf-8"))
+        profiles = release["network_policy"]["profiles"]
+        for config_name in ("codex-gpt-5.6-sol-xhigh.yaml", "codex-gpt-5.6-sol-xhigh-chatgpt.yaml"):
+            agent = yaml.safe_load((REPO_ROOT / "agents" / config_name).read_text(encoding="utf-8"))
+            policy = agent["network_policy"]
+            declared = profiles[policy["profile"]]
+            self.assertEqual(policy["authentication"], declared["authentication"], config_name)
+            self.assertEqual(policy["agent_egress"], declared["agent_egress"], config_name)
+            self.assertEqual(policy["verifier_egress"], release["network_policy"]["verifier_egress"], config_name)
 
     def test_evidence_archive_is_deterministic(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -395,6 +457,7 @@ class PublicBenchmarkTests(unittest.TestCase):
         ) + (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         self.assertNotIn("neutral-exchange", text)
         self.assertNotIn("verification_track", text)
+        self.assertNotIn("complete 12-task", text)
         self.assertIn("not a tool-agnostic", text)
 
     def test_agent_proxy_allows_only_the_openai_https_authority(self) -> None:

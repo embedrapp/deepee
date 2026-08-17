@@ -1,6 +1,7 @@
 base_image=kicad/kicad:10.0.4@sha256:770e2fa006695077b5ba218742d5c3137896af91257b2ca971243fa56b01bb86
 container_platform=linux/amd64
-agent_egress=api.openai.com:443-only
+agent_egress_api_key=api.openai.com:443-only
+agent_egress_chatgpt_subscription=api.openai.com:443,auth.openai.com:443,chatgpt.com:443-only
 kicad=10.0.4
 kicad_symbols=10.0.4
 kicad_footprints=10.0.4

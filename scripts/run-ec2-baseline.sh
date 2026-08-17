@@ -24,7 +24,7 @@ if [[ "${DEEPEE_CHATGPT_AUTH:-0}" == "1" ]]; then
     exit 2
   fi
 elif [[ -z "${CODEX_API_KEY:-}" ]]; then
-  echo "Set CODEX_API_KEY. The restricted agent network supports API-key authentication only." >&2
+  echo "Set CODEX_API_KEY, or use run-ec2-chatgpt-baseline.sh after Codex device authentication." >&2
   exit 2
 fi
 
