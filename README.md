@@ -77,4 +77,6 @@ deepee verify \
   --output results/scored/external-pcb-run.json
 ```
 
+Manual/external runs record their authoring egress as `external_uncontrolled`; DeepEE still applies the same offline verifier and never mislabels that external environment as proxy-isolated.
+
 DeepEE's original code and fixtures are MIT licensed. The KiCad-derived schematic starter identified in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) retains its GPLv3 license. Compare leaderboard results only when the benchmark and task hashes match.

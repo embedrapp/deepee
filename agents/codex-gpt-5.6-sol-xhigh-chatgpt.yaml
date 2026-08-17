@@ -7,6 +7,7 @@ tool_profile: deepee-kicad-toolchain
 network_policy:
   profile: chatgpt_subscription
   authentication: chatgpt_subscription
+  controlled: true
   agent_egress: ["api.openai.com:443", "auth.openai.com:443", "chatgpt.com:443"]
   verifier_egress: []
 pricing:
