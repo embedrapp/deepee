@@ -17,6 +17,7 @@ from deepee.archive import package_run
 from deepee.checks.kicad import run_kicad_drc, run_kicad_erc
 from deepee.checks.kicad_netlist import run_kicad_netlist_contract
 from deepee.checks.kicad_structural import run_kicad_pcb_structure
+from deepee.report import collect_results
 from deepee.runner import _estimate_api_cost, _parse_jsonl, prepare_run
 from deepee.task import iter_tasks, resolve_task
 from deepee.verifier import verify_task
@@ -67,6 +68,7 @@ class PublicBenchmarkTests(unittest.TestCase):
             release["network_policy"]["profiles"]["chatgpt_subscription"]["agent_egress"],
             ["api.openai.com:443", "auth.openai.com:443", "chatgpt.com:443"],
         )
+        self.assertIsNone(release["network_policy"]["profiles"]["external_uncontrolled"]["agent_egress"])
         self.assertEqual(release["network_policy"]["verifier_egress"], [])
         expected = {
             f"deepee-{category}-{number:03d}"
@@ -146,13 +148,40 @@ class PublicBenchmarkTests(unittest.TestCase):
     def test_agent_network_profiles_match_the_benchmark_contract(self) -> None:
         release = yaml.safe_load((REPO_ROOT / "benchmark.yaml").read_text(encoding="utf-8"))
         profiles = release["network_policy"]["profiles"]
-        for config_name in ("codex-gpt-5.6-sol-xhigh.yaml", "codex-gpt-5.6-sol-xhigh-chatgpt.yaml"):
+        for config_name in (
+            "codex-gpt-5.6-sol-xhigh.yaml",
+            "codex-gpt-5.6-sol-xhigh-chatgpt.yaml",
+            "manual-kicad.yaml",
+        ):
             agent = yaml.safe_load((REPO_ROOT / "agents" / config_name).read_text(encoding="utf-8"))
             policy = agent["network_policy"]
             declared = profiles[policy["profile"]]
             self.assertEqual(policy["authentication"], declared["authentication"], config_name)
+            self.assertEqual(policy["controlled"], declared["controlled"], config_name)
             self.assertEqual(policy["agent_egress"], declared["agent_egress"], config_name)
             self.assertEqual(policy["verifier_egress"], release["network_policy"]["verifier_egress"], config_name)
+
+    @unittest.skipUnless(shutil.which("cc"), "C compiler required")
+    def test_shipped_manual_agent_result_is_reportable(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            metadata = prepare_run(
+                REPO_ROOT / "agents" / "manual-kicad.yaml",
+                "deepee-repair-001",
+                root / "runs",
+                REPO_ROOT,
+            )
+            run_dir = Path(metadata["run_dir"])
+            (run_dir / "firmware" / "src" / "scheduler.c").write_text(CORRECT_SCHEDULER, encoding="utf-8")
+            results_dir = root / "results"
+            results_dir.mkdir()
+            score_path = results_dir / "manual.json"
+            verify_task("deepee-repair-001", run_dir, output=score_path, root=REPO_ROOT)
+            report = collect_results(results_dir, root / "leaderboard.json")
+        policy = report["runs"][0]["network_policy"]
+        self.assertEqual(policy["effective_profile"], "external_uncontrolled")
+        self.assertFalse(policy["controlled"])
+        self.assertIsNone(policy["agent_egress"])
 
     def test_evidence_archive_is_deterministic(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

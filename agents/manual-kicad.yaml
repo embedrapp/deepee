@@ -4,6 +4,12 @@ system: external
 model: user-supplied
 effort: user-supplied
 tool_profile: deepee-kicad-toolchain
+network_policy:
+  profile: external_uncontrolled
+  authentication: external
+  controlled: false
+  agent_egress: null
+  verifier_egress: []
 context_file: agents/KICAD_CONTEXT.md
 runner:
   type: manual

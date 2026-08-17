@@ -47,7 +47,20 @@ checks:
 
 def _manual_agent(root: Path) -> Path:
     agent = root / "agent.yaml"
-    agent.write_text("id: manual-agent\nrunner:\n  type: manual\n  command: null\n", encoding="utf-8")
+    agent.write_text(
+        """id: manual-agent
+network_policy:
+  profile: external_uncontrolled
+  authentication: external
+  controlled: false
+  agent_egress: null
+  verifier_egress: []
+runner:
+  type: manual
+  command: null
+""",
+        encoding="utf-8",
+    )
     return agent
 
 
@@ -84,6 +97,7 @@ def _score(
                     "profile": "api_key",
                     "effective_profile": "api_key",
                     "authentication": "api_key",
+                    "controlled": True,
                     "agent_egress": ["api.openai.com:443"],
                     "verifier_egress": [],
                 },
@@ -110,6 +124,7 @@ class VerifierTests(unittest.TestCase):
                             "profile": "api_key",
                             "effective_profile": "api_key",
                             "authentication": "api_key",
+                            "controlled": True,
                             "agent_egress": ["api.openai.com:443"],
                             "verifier_egress": [],
                         },

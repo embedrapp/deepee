@@ -8,10 +8,16 @@ network_policy:
   profiles:
     api_key:
       authentication: api_key
+      controlled: true
       agent_egress: ["api.openai.com:443"]
     chatgpt_subscription:
       authentication: chatgpt_subscription
+      controlled: true
       agent_egress: ["api.openai.com:443", "auth.openai.com:443", "chatgpt.com:443"]
+    external_uncontrolled:
+      authentication: external
+      controlled: false
+      agent_egress: null
   verifier_egress: []
 images:
   agent: deepee-agent:1.2.0

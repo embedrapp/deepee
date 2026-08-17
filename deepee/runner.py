@@ -98,11 +98,12 @@ def _effective_container(configured: Dict[str, Any]) -> Dict[str, Any]:
 def _effective_network_policy(agent: Dict[str, Any], container: Dict[str, Any]) -> Dict[str, Any]:
     """Return and validate the egress/authentication profile used by this run."""
     configured = dict(agent.get("network_policy") or {})
-    if not container:
-        return configured
     profile = str(configured.get("profile") or "")
     if not profile:
-        raise ValueError("Containerized agents must declare network_policy.profile")
+        raise ValueError("Agents must declare network_policy.profile")
+    if not container:
+        configured["effective_profile"] = profile
+        return configured
     proxy_profile = "chatgpt_subscription" if os.environ.get("DEEPEE_CHATGPT_AUTH") == "1" else "api_key"
     if profile != proxy_profile:
         raise ValueError(
