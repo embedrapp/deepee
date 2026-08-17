@@ -107,6 +107,18 @@ checks:
   - GND
   - MISO
   - DAT1
+  track_width_constraints:
+    - name: all-required-nets
+      nets:
+        - DAT2
+        - SD_CS
+        - MOSI
+        - 3V3
+        - SCK
+        - GND
+        - MISO
+        - DAT1
+      minimum_mm: 0.25
 - type: kicad_drc
   name: clean_drc
   board: artifacts/microsd-spi-adapter.kicad_pcb

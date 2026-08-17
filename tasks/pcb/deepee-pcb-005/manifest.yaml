@@ -101,6 +101,15 @@ checks:
   - SDA
   - SCL
   - ADDR
+  track_width_constraints:
+    - name: all-required-nets
+      nets:
+        - GND
+        - 3V3
+        - SDA
+        - SCL
+        - ADDR
+      minimum_mm: 0.25
 - type: kicad_drc
   name: clean_drc
   board: artifacts/bmp280-environment-sensor.kicad_pcb

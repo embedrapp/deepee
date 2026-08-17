@@ -163,6 +163,55 @@ class PublicBenchmarkTests(unittest.TestCase):
         self.assertEqual(result["details"]["dimensions"]["width_mm"], 30.0)
         self.assertEqual(result["details"]["dimensions"]["height_mm"], 25.0)
 
+    def test_every_check_has_a_public_v2_requirement_contract(self) -> None:
+        for task in iter_tasks(REPO_ROOT):
+            self.assertEqual(task.manifest.get("contract_version"), "2.0", task.id)
+            requirements = task.manifest.get("requirements") or []
+            check_names = {
+                str(check.get("name") or check.get("type"))
+                for check in task.manifest["checks"]
+            }
+            self.assertEqual({str(item["check"]) for item in requirements}, check_names, task.id)
+            self.assertTrue(all(item.get("critical") is True for item in requirements), task.id)
+
+    def test_usb_c_pcb_contract_rejects_thin_and_length_mismatched_routes(self) -> None:
+        task = resolve_task("deepee-pcb-007", REPO_ROOT)
+        check = next(item for item in task.manifest["checks"] if item["type"] == "kicad_pcb_structure")
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            good_dir = assemble_reference_run(task, base / "good")
+            good = run_kicad_pcb_structure(check, task, good_dir, {})
+            self.assertTrue(good["passed"], good)
+            metrics = good["details"]["routing_metrics"]
+            self.assertEqual(metrics["USB_DP"]["widths_mm"], [0.25])
+            self.assertEqual(metrics["USB_DM"]["widths_mm"], [0.25])
+
+            thin_dir = assemble_reference_run(task, base / "thin")
+            thin_board = thin_dir / "artifacts" / "usb-c-5v-sink.kicad_pcb"
+            thin_board.write_text(
+                thin_board.read_text(encoding="utf-8").replace("(width 0.25)", "(width 0.10)"),
+                encoding="utf-8",
+            )
+            thin = run_kicad_pcb_structure(check, task, thin_dir, {})
+            thin_failures = {
+                item["name"] for item in thin["details"]["subchecks"] if not item["passed"]
+            }
+            self.assertIn("track_width:all-required-nets", thin_failures)
+
+            skew_dir = assemble_reference_run(task, base / "skew")
+            skew_board = skew_dir / "artifacts" / "usb-c-5v-sink.kicad_pcb"
+            text = skew_board.read_text(encoding="utf-8")
+            self.assertIn("(end 117.000 105.000)", text)
+            skew_board.write_text(
+                text.replace("(end 117.000 105.000)", "(end 119.000 105.000)", 1),
+                encoding="utf-8",
+            )
+            skew = run_kicad_pcb_structure(check, task, skew_dir, {})
+            skew_failures = {
+                item["name"] for item in skew["details"]["subchecks"] if not item["passed"]
+            }
+            self.assertIn("matched_length:usb2-data-pair", skew_failures)
+
     def test_kicad_checks_treat_warnings_as_violations(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = Path(tmp)

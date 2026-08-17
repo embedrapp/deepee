@@ -107,6 +107,18 @@ checks:
   - A
   - B
   - 3V3
+  track_width_constraints:
+    - name: all-required-nets
+      nets:
+        - RO
+        - RE_N
+        - DE
+        - DI
+        - GND
+        - A
+        - B
+        - 3V3
+      minimum_mm: 0.25
 - type: kicad_drc
   name: clean_drc
   board: artifacts/max3485-rs485.kicad_pcb

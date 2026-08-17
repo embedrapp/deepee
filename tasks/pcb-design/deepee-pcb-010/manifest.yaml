@@ -121,6 +121,18 @@ checks:
   - SCL_3V3
   - 3V3
   - ENABLE
+  track_width_constraints:
+    - name: all-required-nets
+      nets:
+        - GND
+        - 1V8
+        - SCL_1V8
+        - SDA_1V8
+        - SDA_3V3
+        - SCL_3V3
+        - 3V3
+        - ENABLE
+      minimum_mm: 0.25
 - type: kicad_drc
   name: clean_drc
   board: artifacts/pca9306-i2c-level-shifter.kicad_pcb

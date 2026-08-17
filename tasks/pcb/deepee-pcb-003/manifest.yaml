@@ -99,6 +99,16 @@ checks:
   - 3V3
   - VIN_OUT
   - VIN_IN
+  track_width_constraints:
+    - name: all-required-nets
+      nets:
+        - GND
+        - SDA
+        - SCL
+        - 3V3
+        - VIN_OUT
+        - VIN_IN
+      minimum_mm: 0.25
 - type: kicad_drc
   name: clean_drc
   board: artifacts/ina219-current-monitor.kicad_pcb

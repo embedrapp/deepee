@@ -63,6 +63,18 @@ checks:
       C2.1: +3V3
       C2.2: GND
     required_routed_nets: [GND, "\\+3V3", CE, CSN, SCK, MOSI, MISO, IRQ]
+    track_width_constraints:
+      - name: all-required-nets
+        nets:
+          - GND
+          - \+3V3
+          - CE
+          - CSN
+          - SCK
+          - MOSI
+          - MISO
+          - IRQ
+        minimum_mm: 0.25
   - type: kicad_drc
     name: clean_drc
     board: artifacts/nrf24-adapter.kicad_pcb

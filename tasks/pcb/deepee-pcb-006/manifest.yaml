@@ -84,6 +84,13 @@ checks:
   - VIN
   - GND
   - 3V3
+  track_width_constraints:
+    - name: all-required-nets
+      nets:
+        - VIN
+        - GND
+        - 3V3
+      minimum_mm: 0.25
 - type: kicad_drc
   name: clean_drc
   board: artifacts/ap2112-3v3-regulator.kicad_pcb

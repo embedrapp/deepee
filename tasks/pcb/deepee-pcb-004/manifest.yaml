@@ -108,6 +108,19 @@ checks:
   - 3V3
   - SDA
   - SCL
+  track_width_constraints:
+    - name: all-required-nets
+      nets:
+        - GND
+        - ALERT
+        - AIN0
+        - AIN1
+        - AIN2
+        - AIN3
+        - 3V3
+        - SDA
+        - SCL
+      minimum_mm: 0.25
 - type: kicad_drc
   name: clean_drc
   board: artifacts/ads1115-analog-input.kicad_pcb
