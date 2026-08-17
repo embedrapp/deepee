@@ -23,6 +23,13 @@ required_tools: [kicad-cli]
 submission_paths: [artifacts/board.kicad_pcb]
 required_artifacts:
   - {path: artifacts/board.kicad_pcb, kind: file}
+contract_version: "2.0"
+requirements:
+  - id: fixed-board-contract
+    description: Satisfy the declared native board and routing contract.
+    layer: physical
+    critical: true
+    check: fixed_board_contract
 checks:
   - type: artifact_presence
     name: board_exists
@@ -34,7 +41,7 @@ checks:
     board: artifacts/board.kicad_pcb
 ```
 
-All paths are relative to the fresh run directory. Absolute paths and `..` are rejected. Deprecated weighted-scoring and verification-track fields are rejected by lint.
+All paths are relative to the fresh run directory. Absolute paths and `..` are rejected. Deprecated weighted-scoring and verification-track fields are rejected by lint. Every check must map one-to-one to a stable requirement ID, description, engineering layer, and criticality declaration.
 
 ## Checks
 
@@ -47,6 +54,6 @@ All paths are relative to the fresh run directory. Absolute paths and `..` are r
 - `kicad_pcb_structure`: native board layers, outline, footprints, pad nets, tracks, vias, and zones match the fixed contract.
 - `kicad_erc` / `kicad_drc`: KiCad CLI runs with errors and warnings enabled and exits nonzero for violations.
 
-Every declared check is mandatory. The verifier returns `score: 1.0` only when all pass, otherwise `score: 0.0`.
+Every current requirement is critical. The verifier returns `score: 1.0` only when every critical requirement passes, otherwise `score: 0.0`. The result also includes `requirements`, `score_vector`, `quality_score`, `critical_requirement_failures`, and a deterministic `metadata.hashes.decision` value.
 
-Hardware contracts specify exact components and interface nets but intentionally do not prescribe full golden netlists, placement coordinates, or trace geometry.
+Hardware contracts specify exact components and interface nets but intentionally do not prescribe full golden netlists or golden placement coordinates. Physical constraints must be stated in the prompt, represented in the manifest, and tested with both a known-good design and an intentional mutant.

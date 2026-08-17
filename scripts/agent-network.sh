@@ -2,7 +2,7 @@
 set -euo pipefail
 
 docker_cmd="${DOCKER:-docker}"
-agent_image="${AGENT_IMAGE:-deepee-agent:1.1.0}"
+agent_image="${AGENT_IMAGE:-deepee-agent:1.2.0}"
 network="deepee-agent-internal"
 proxy_name="deepee-api-egress"
 proxy_url="http://${proxy_name}:3128"

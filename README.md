@@ -4,7 +4,7 @@ DeepEE is a small benchmark for AI agents doing embedded firmware and KiCad engi
 
 ## Scope
 
-Version 1.1 has 48 tasks: 12 in each engineering category.
+Version 1.2 has 48 tasks: 12 in each engineering category.
 
 | Category | Task IDs | Topics | Pass gate |
 |---|---|---|---|
@@ -15,20 +15,24 @@ Version 1.1 has 48 tasks: 12 in each engineering category.
 
 The tasks are compact adaptations of real bug reports, open-source boards, official KiCad QA material, and published breakout use cases. Provenance is recorded in each task's `SOURCE.md` and summarized in [docs/TASK_SOURCES.md](docs/TASK_SOURCES.md).
 
+The evaluation contract and its limits are documented in [docs/VALIDATION_MODEL.md](docs/VALIDATION_MODEL.md). Contributions must follow [CONTRIBUTING.md](CONTRIBUTING.md), including the known-good and mutant release gates.
+
 ## What is verified
 
-Every listed check is mandatory. A task score is binary:
+Every task declares public, machine-readable critical requirements. A task score remains binary:
 
 ```text
 all checks pass -> 1
 anything fails  -> 0
 ```
 
-The primary aggregate is Pass@1: the fraction of tasks passed on an agent's first publishable attempt. The verifier checks exact required parts and pin/pad nets, but it does not compare a whole schematic netlist, component placement, or trace geometry with a golden answer. KiCad performs the final ERC/DRC gate.
+The primary aggregate is Pass@1: the fraction of tasks passed on an agent's first publishable attempt. Score files also contain each requirement outcome, its engineering layer, leaf evidence, a layer-level score vector, and a stable decision hash. A strong result in one layer cannot mask a failed critical requirement in another.
+
+The verifier checks required parts and pin/pad nets without comparing an entire design to golden geometry. KiCad performs the final ERC/DRC gate. PCB contracts additionally measure declared physical constraints directly from native copper: all named nets use at least 0.25 mm track width, and the USB-C repair constrains routed D+/D− skew to 1.0 mm. The release gate runs a targeted mutant for every critical requirement and must reject all of them.
 
 This is deliberately a KiCad-native benchmark, not a tool-agnostic EDA benchmark. An AI system may be compared if it can produce the required native KiCad 10 artifacts. Altium- or EasyEDA-only outputs are out of scope because silently converting them would weaken the assurance and make the comparison misleading.
 
-Firmware is verified by native unit tests and a real target build. Version 1.1 does not claim runtime peripheral, timing, analog, thermal, EMI, or fabrication signoff; Renode and circuit simulation are intentionally deferred.
+Firmware is verified by native behavioral tests and a real target build. Version 1.2 does not claim runtime peripheral, analog, thermal, EMI, or fabrication signoff; those require suitable simulation or hardware-in-the-loop fixtures and are excluded from task claims.
 
 ## Lightweight local preparation
 
@@ -54,7 +58,7 @@ export CODEX_API_KEY='...'
 ./scripts/run-ec2-baseline.sh --all-tasks
 ```
 
-The deployment builds separate `deepee-agent:1.1.0` and `deepee-verifier:1.1.0` images. The agent image has KiCad 10.0.4, PlatformIO 6.1.19, compilers, and Codex but no benchmark tasks or verifier code. Agent runs use an internal-only Docker network whose CONNECT proxy permits only `api.openai.com:443`; the host smoke gate proves both that route and blocked GitHub/direct egress. Verification runs without any network or agent credentials. Before a baseline starts, the Ubuntu host also proves one private reference submission for every task against that same verifier image. See [docs/EC2.md](docs/EC2.md) and [docs/RUN_PROTOCOL.md](docs/RUN_PROTOCOL.md).
+The deployment builds separate `deepee-agent:1.2.0` and `deepee-verifier:1.2.0` images. The agent image has KiCad 10.0.4, PlatformIO 6.1.19, compilers, and Codex but no benchmark tasks or verifier code. Agent runs use an internal-only Docker network whose CONNECT proxy permits only `api.openai.com:443`; the host smoke gate proves both that route and blocked GitHub/direct egress. Verification runs without any network or agent credentials. Before a baseline starts, the Ubuntu host also proves one private reference submission for every task against that same verifier image. See [docs/EC2.md](docs/EC2.md) and [docs/RUN_PROTOCOL.md](docs/RUN_PROTOCOL.md).
 
 For a manual external agent that uses KiCad:
 
@@ -65,7 +69,7 @@ deepee benchmark \
   --prepare-only
 
 deepee verify \
-  --container-image deepee-verifier:1.1.0 \
+  --container-image deepee-verifier:1.2.0 \
   --task deepee-pcb-001 \
   --run-dir '<printed-run-directory>' \
   --output results/scored/external-pcb-run.json

@@ -11,8 +11,8 @@ runner:
   stdin: "{prompt_bundle}"
   container:
     engine: docker
-    image: deepee-agent:1.1.0
-    verification_image: deepee-verifier:1.1.0
+    image: deepee-agent:1.2.0
+    verification_image: deepee-verifier:1.2.0
     workdir: /work
     network: deepee-agent-internal
     cpus: 4
