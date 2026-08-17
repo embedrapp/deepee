@@ -16,7 +16,7 @@ from deepee.archive import package_run
 from deepee.checks.kicad import run_kicad_drc, run_kicad_erc
 from deepee.checks.kicad_netlist import run_kicad_netlist_contract
 from deepee.checks.kicad_structural import run_kicad_pcb_structure
-from deepee.runner import _parse_jsonl, prepare_run
+from deepee.runner import _estimate_api_cost, _parse_jsonl, prepare_run
 from deepee.task import iter_tasks, resolve_task
 from deepee.verifier import verify_task
 from validation.adequacy import mutate_requirement
@@ -112,6 +112,21 @@ class PublicBenchmarkTests(unittest.TestCase):
         parsed = _parse_jsonl(output)
         self.assertEqual(parsed["thread_id"], "thread-1")
         self.assertEqual(parsed["usage"], {"input_tokens": 20, "output_tokens": 7})
+
+    def test_api_equivalent_cost_separates_cached_input(self) -> None:
+        estimate = _estimate_api_cost(
+            {"input_tokens": 1_000_000, "cached_input_tokens": 800_000, "output_tokens": 10_000},
+            {
+                "model": "gpt-5.6-sol",
+                "per_million_tokens": {"input": 5.0, "cached_input": 0.5, "output": 30.0},
+            },
+        )
+        self.assertEqual(estimate["tokens"]["uncached_input"], 200_000)
+        self.assertEqual(estimate["components_usd"]["uncached_input"], 1.0)
+        self.assertEqual(estimate["components_usd"]["cached_input"], 0.4)
+        self.assertEqual(estimate["components_usd"]["output"], 0.3)
+        self.assertEqual(estimate["total_usd"], 1.7)
+        self.assertIsNone(estimate["actual_subscription_charge_usd"])
 
     @unittest.skipUnless(shutil.which("cc"), "C compiler required")
     def test_repair_solution_passes_binary_verifier(self) -> None:
@@ -315,6 +330,33 @@ class PublicBenchmarkTests(unittest.TestCase):
             self.assertNotIn("benchmark", prompt)
             self.assertNotIn("verifier", prompt)
             self.assertTrue((task.path / "SOURCE.md").is_file(), task.id)
+
+    def test_hardware_prompts_disclose_every_enforced_component_identity(self) -> None:
+        for task in iter_tasks(REPO_ROOT):
+            if task.suite not in {"schematic", "schematic-design", "pcb", "pcb-design"}:
+                continue
+            structure_type = "kicad_schematic_structure" if "schematic" in task.suite else "kicad_pcb_structure"
+            structure = next(check for check in task.manifest["checks"] if check["type"] == structure_type)
+            prompt = task.prompt_path.read_text(encoding="utf-8")
+            for component in structure["components"]:
+                fields = ["reference", "value", "footprint"]
+                if "schematic" in task.suite:
+                    fields.append("library")
+                for field in fields:
+                    value = str(component.get(field) or "")
+                    if value:
+                        self.assertIn(value, prompt, (task.id, field, value))
+
+    def test_hardware_prompts_name_every_protected_starter_path(self) -> None:
+        for task in iter_tasks(REPO_ROOT):
+            if task.suite not in {"schematic", "schematic-design", "pcb", "pcb-design"}:
+                continue
+            prompt = task.prompt_path.read_text(encoding="utf-8")
+            for check in task.manifest["checks"]:
+                if check["type"] != "starter_integrity":
+                    continue
+                for protected in check.get("protected_globs", []):
+                    self.assertIn(protected, prompt, (task.id, protected))
 
     def test_mcp9808_tasks_require_alert_pullup(self) -> None:
         for task_id in ("deepee-sch-002", "deepee-pcb-002"):

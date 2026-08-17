@@ -64,6 +64,41 @@ def _validate_check(task: Task, check: Dict[str, Any], errors: List[Dict[str, An
             _error(errors, task, f"check {name} has unsafe {key}: {value}")
 
 
+def _validate_hardware_prompt_contract(task: Task, manifest: Dict[str, Any], errors: List[Dict[str, Any]]) -> None:
+    if task.suite not in {"schematic", "schematic-design", "pcb", "pcb-design"}:
+        return
+    if not task.prompt_path.is_file():
+        return
+
+    prompt = task.prompt_path.read_text(encoding="utf-8")
+    structure_type = "kicad_schematic_structure" if "schematic" in task.suite else "kicad_pcb_structure"
+    structure = next(
+        (check for check in manifest.get("checks") or [] if check.get("type") == structure_type),
+        None,
+    )
+    if structure:
+        for component in structure.get("components") or []:
+            fields = ["reference", "value", "footprint"]
+            if "schematic" in task.suite:
+                fields.append("library")
+            for field in fields:
+                value = str(component.get(field) or "")
+                if value and value not in prompt:
+                    _error(
+                        errors,
+                        task,
+                        f"prompt does not disclose enforced component {field}: {value}",
+                    )
+
+    for check in manifest.get("checks") or []:
+        if check.get("type") != "starter_integrity":
+            continue
+        for protected in check.get("protected_globs") or []:
+            value = str(protected)
+            if value and value not in prompt:
+                _error(errors, task, f"prompt does not disclose protected starter path: {value}")
+
+
 def _validate_requirements(task: Task, manifest: Dict[str, Any], errors: List[Dict[str, Any]]) -> None:
     if str(manifest.get("contract_version") or "") != "2.0":
         _error(errors, task, "contract_version must be 2.0")
@@ -139,6 +174,7 @@ def lint_tasks(root: Optional[Path] = None) -> Dict[str, Any]:
             _error(errors, task, f"manifest uses removed key: {key}")
 
         _validate_requirements(task, manifest, errors)
+        _validate_hardware_prompt_contract(task, manifest, errors)
 
         artifacts = manifest.get("required_artifacts")
         if not isinstance(artifacts, list) or not artifacts:

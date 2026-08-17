@@ -137,6 +137,53 @@ def _parse_jsonl(output: str) -> Dict[str, Any]:
     return {"event_count": event_count, "thread_id": thread_id, "usage": usage}
 
 
+def _estimate_api_cost(usage: Dict[str, int], pricing: Dict[str, Any]) -> Dict[str, Any]:
+    """Estimate the API-equivalent token cost from CLI aggregate usage.
+
+    Codex subscription runs are not billed per API token. This estimate exists so
+    subscription and API-backed agents can be compared on the same disclosed
+    pricing basis without charging cached input at the uncached rate.
+    """
+    rates = pricing.get("per_million_tokens") or {}
+    input_tokens = max(0, int(usage.get("input_tokens", 0)))
+    cached_input_tokens = min(input_tokens, max(0, int(usage.get("cached_input_tokens", 0))))
+    uncached_input_tokens = input_tokens - cached_input_tokens
+    output_tokens = max(0, int(usage.get("output_tokens", 0)))
+    input_usd = uncached_input_tokens * float(rates.get("input", 0)) / 1_000_000
+    cached_input_usd = cached_input_tokens * float(rates.get("cached_input", 0)) / 1_000_000
+    output_usd = output_tokens * float(rates.get("output", 0)) / 1_000_000
+    return {
+        "kind": str(pricing.get("kind") or "api_equivalent"),
+        "currency": str(pricing.get("currency") or "USD"),
+        "model": str(pricing.get("model") or ""),
+        "pricing_as_of": str(pricing.get("as_of") or ""),
+        "pricing_source": str(pricing.get("source") or ""),
+        "per_million_tokens": {
+            "input": float(rates.get("input", 0)),
+            "cached_input": float(rates.get("cached_input", 0)),
+            "output": float(rates.get("output", 0)),
+        },
+        "tokens": {
+            "input": input_tokens,
+            "uncached_input": uncached_input_tokens,
+            "cached_input": cached_input_tokens,
+            "output": output_tokens,
+        },
+        "components_usd": {
+            "uncached_input": round(input_usd, 6),
+            "cached_input": round(cached_input_usd, 6),
+            "output": round(output_usd, 6),
+        },
+        "total_usd": round(input_usd + cached_input_usd + output_usd, 6),
+        "actual_subscription_charge_usd": None,
+        "limitations": [
+            "This is an API-equivalent estimate; a ChatGPT subscription run has no per-task token invoice.",
+            "Codex CLI reports aggregate turn usage, not each underlying API request.",
+            "Cache-write tokens and per-request long-context surcharges cannot be identified from CLI aggregate usage and are not included.",
+        ],
+    }
+
+
 def _run_process(
     command: Any,
     cwd: Path,
@@ -382,5 +429,8 @@ def run_agent(agent_config: Path, task_ref: str, runs_root: Optional[Path] = Non
     if metadata.get("runner_output_format") == "jsonl":
         (run_dir / ".deepee" / "events.jsonl").write_text(output, encoding="utf-8")
         metadata.update(_parse_jsonl(output))
+    pricing = metadata.get("agent", {}).get("pricing") or {}
+    if pricing and metadata.get("usage"):
+        metadata["cost_estimate"] = _estimate_api_cost(metadata["usage"], pricing)
     write_json(run_dir / ".deepee" / "run.json", metadata)
     return metadata
