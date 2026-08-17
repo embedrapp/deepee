@@ -38,7 +38,7 @@ runner:
     - --config
     - 'model_reasoning_effort="xhigh"'
     - --sandbox
-    - workspace-write
+    - danger-full-access
     - --ephemeral
     - --ignore-user-config
     - --ignore-rules
@@ -55,12 +55,13 @@ runner:
     - --config
     - 'model_reasoning_effort="xhigh"'
     - --sandbox
-    - workspace-write
+    - danger-full-access
     - --ephemeral
     - --ignore-user-config
     - --ignore-rules
     - --json
     - --help
 metadata:
+  sandbox_boundary: The agent runs without a nested CLI sandbox inside an isolated, resource-limited Docker container.
   model_source: https://developers.openai.com/api/docs/guides/latest-model.md
   authoring_policy: Submit native KiCad 10 files for schematic and PCB tasks.

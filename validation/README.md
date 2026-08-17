@@ -10,6 +10,19 @@ Regenerate the KiCad fixtures only when their task contracts change:
 python -m pip install -r validation/requirements.txt
 KICAD_SYMBOL_DIR=/usr/share/kicad/symbols \
   python validation/generate_hardware_fixtures.py
+
+python validation/generate_expanded_code_tasks.py
+KICAD_SYMBOL_DIR=/usr/share/kicad/symbols \
+  python validation/generate_expanded_hardware_tasks.py
+
+# Run with KiCad's Python runtime to replace the repair-board placeholders
+# with placed, net-assigned library footprints.
+KICAD_FOOTPRINT_DIR=/usr/share/kicad/footprints \
+  python validation/generate_expanded_hardware_tasks.py --pcb-starters-only
+
+# Inside the exact verifier image so pcbnew and the footprint libraries match:
+python validation/canonicalize_hardware_boards.py adapter
+python validation/canonicalize_hardware_boards.py breakout
 ```
 
 Validate all reference submissions on the Ubuntu x86_64 benchmark host:

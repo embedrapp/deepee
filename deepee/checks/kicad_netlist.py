@@ -19,6 +19,16 @@ def _match(actual: str, expected: Any) -> bool:
     return actual == str(expected)
 
 
+def _normalize_top_level_net_name(name: str) -> str:
+    """Match KiCad's XML spelling for root-sheet local labels.
+
+    KiCad 10 prefixes root-sheet local labels with a single slash in the XML
+    netlist (for example, ``/SDA``), while global and power labels remain
+    unprefixed.  Preserve hierarchical names such as ``/Sensor/SDA``.
+    """
+    return name[1:] if name.startswith("/") and "/" not in name[1:] else name
+
+
 def run_kicad_netlist_contract(check: Dict[str, Any], task, run_dir: Path, options: Dict[str, Any]) -> Dict[str, Any]:
     root = resolve_run_path(run_dir, str(check.get("root", "artifacts")))
     schematic = resolve_run_path(run_dir, str(check["schematic"])) if check.get("schematic") else _first_file(root, ".kicad_sch")
@@ -79,7 +89,7 @@ def run_kicad_netlist_contract(check: Dict[str, Any], task, run_dir: Path, optio
     pin_nets: Dict[str, str] = {}
     nets: Dict[str, List[str]] = {}
     for net in document.findall("./nets/net"):
-        net_name = net.get("name") or ""
+        net_name = _normalize_top_level_net_name(net.get("name") or "")
         members = []
         for node in net.findall("node"):
             key = f"{node.get('ref', '')}.{node.get('pin', '')}"

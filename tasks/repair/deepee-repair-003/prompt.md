@@ -11,4 +11,4 @@ Repair `firmware/src/adc_scale.c` so that:
 - the function returns `false` for invalid arguments or when the mathematical result is outside `int32_t`;
 - `output_uv` is written only on success.
 
-Do not change `adc_scale.h` or the Makefile. Submit the repaired C file in place; verifier-owned native tests cover nominal, signed, boundary, and overflow cases.
+Do not change `adc_scale.h` or the Makefile. Submit the repaired C file in place and handle nominal, signed, boundary, and overflow cases.

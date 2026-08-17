@@ -1,0 +1,2 @@
+required:
+- firmware/src/http_chunk_size.c

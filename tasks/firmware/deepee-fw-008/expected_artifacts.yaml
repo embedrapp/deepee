@@ -1,0 +1,5 @@
+required:
+- artifacts/firmware/include/ads1115_config.h
+- artifacts/firmware/src/ads1115_config.c
+- artifacts/firmware/src/main.cpp
+- artifacts/firmware/platformio.ini

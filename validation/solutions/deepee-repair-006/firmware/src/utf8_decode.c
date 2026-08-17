@@ -1,0 +1,2 @@
+#include "utf8_decode.h"
+bool utf8_decode_one(const uint8_t*d,size_t n,uint32_t*s,size_t*c){if(!d||!s||!c||!n)return false;uint32_t cp;size_t k;if(d[0]<0x80){cp=d[0];k=1;}else if(d[0]>=0xc2&&d[0]<=0xdf){cp=d[0]&0x1f;k=2;}else if(d[0]>=0xe0&&d[0]<=0xef){cp=d[0]&0x0f;k=3;}else if(d[0]>=0xf0&&d[0]<=0xf4){cp=d[0]&7;k=4;}else return false;if(n<k)return false;for(size_t i=1;i<k;i++){if((d[i]&0xc0)!=0x80)return false;cp=(cp<<6)|(d[i]&0x3f);}if((k==2&&cp<0x80)||(k==3&&cp<0x800)||(k==4&&cp<0x10000)||(cp>=0xd800&&cp<=0xdfff)||cp>0x10ffff)return false;*s=cp;*c=k;return true;}

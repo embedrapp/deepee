@@ -5,4 +5,4 @@ Adapted from Zephyr's documented byte ring-buffer semantics: normal put/get oper
 - Zephyr ring-buffer documentation: https://docs.zephyrproject.org/latest/kernel/data_structures/ring_buffers.html
 - Zephyr ring-buffer API: https://docs.zephyrproject.org/latest/doxygen/html/group__ring__buffer__apis.html
 
-The compact API and faulty starter are original benchmark material. No Zephyr source code is copied.
+The compact API and faulty starter are original project material. No Zephyr source code is copied.

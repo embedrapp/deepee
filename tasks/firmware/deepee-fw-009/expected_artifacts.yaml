@@ -1,0 +1,5 @@
+required:
+- artifacts/firmware/include/ds18b20_scratchpad.h
+- artifacts/firmware/src/ds18b20_scratchpad.c
+- artifacts/firmware/src/main.cpp
+- artifacts/firmware/platformio.ini

@@ -133,7 +133,7 @@ checks:
     def test_repository_lint_passes(self) -> None:
         payload = lint_tasks(REPO_ROOT)
         self.assertTrue(payload["ok"], payload)
-        self.assertEqual(payload["task_count"], 12)
+        self.assertEqual(payload["task_count"], 48)
 
     def test_prepare_run_uses_unique_run_ids(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -205,6 +205,9 @@ checks:
         docker_run = next(command for command in commands if len(command) > 1 and command[1] == "run")
         self.assertIn(f"type=bind,src={run_dir.resolve()},dst=/submission,readonly", docker_run)
         self.assertTrue(any(item.endswith(",dst=/verification") for item in docker_run))
+        user_index = docker_run.index("--user")
+        self.assertEqual(docker_run[user_index + 1], "benchmark")
+        self.assertTrue(any("chmod a+rwX" in item for item in docker_run))
         self.assertTrue(payload["metadata"]["verification_container"]["submission_read_only"])
         self.assertFalse(payload["passed"])
 

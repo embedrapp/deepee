@@ -1,0 +1,5 @@
+required:
+- artifacts/firmware/include/max31855_decode.h
+- artifacts/firmware/src/max31855_decode.c
+- artifacts/firmware/src/main.cpp
+- artifacts/firmware/platformio.ini

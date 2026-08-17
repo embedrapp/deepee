@@ -6,4 +6,4 @@ Implement the Modbus serial-line CRC-16 algorithm with initial value `0xFFFF`, r
 
 The canonical request payload `01 03 00 00 00 0A` produces CRC value `0xCDC5` and is transmitted with bytes `C5 CD`.
 
-Do not change `modbus_crc.h`, `main.cpp`, or `platformio.ini`. Submit the completed C file in place. It must pass verifier-owned native vectors and the ESP32-S2 build.
+Do not change `modbus_crc.h`, `main.cpp`, or `platformio.ini`. Submit the completed C file in place and keep it compatible with the ESP32-S2 build.

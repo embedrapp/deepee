@@ -1,0 +1,2 @@
+required:
+- firmware/src/time32.c

@@ -1,0 +1,2 @@
+required:
+- firmware/src/modbus_crc.c

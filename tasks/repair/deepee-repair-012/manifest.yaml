@@ -1,0 +1,27 @@
+id: deepee-repair-012
+suite: repair
+difficulty: hard
+timeout_minutes: 45
+required_tools:
+- gcc
+submission_paths:
+- firmware/src/time32.c
+required_artifacts:
+- path: firmware/src/time32.c
+  kind: file
+checks:
+- type: artifact_presence
+  name: repaired_time32_exists
+- type: starter_integrity
+  name: time32_contract_unchanged
+  protected_globs:
+  - firmware/src/time32.h
+  - firmware/Makefile
+- type: c_unit_tests
+  name: time32_behavior
+  sources:
+  - firmware/src/time32.c
+  test_sources:
+  - verifier/test_time32.c
+  include_dirs:
+  - firmware/src

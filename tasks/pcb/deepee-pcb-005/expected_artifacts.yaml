@@ -1,0 +1,3 @@
+required:
+- artifacts/bmp280-environment-sensor.kicad_pcb
+- artifacts/bmp280-environment-sensor.kicad_pro

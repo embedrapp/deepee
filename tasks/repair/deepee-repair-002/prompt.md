@@ -10,6 +10,6 @@ Required behavior:
 - keep `count`, `read_index`, and `write_index` consistent after partial operations;
 - zero-length operations return zero without changing state.
 
-The benchmark exercises a single producer and single consumer sequentially; concurrency control is outside this task. Do not change `ring_buffer.h` or the Makefile.
+The integration uses one producer and one consumer sequentially; concurrency control is outside this repair. Do not change `ring_buffer.h` or the Makefile.
 
-Submit the repaired `firmware/src/ring_buffer.c`. It must pass verifier-owned native tests.
+Submit the repaired `firmware/src/ring_buffer.c` and preserve the documented API behavior.

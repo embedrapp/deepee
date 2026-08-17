@@ -4,22 +4,14 @@ DeepEE is a small benchmark for AI agents doing embedded firmware and KiCad engi
 
 ## Scope
 
-Version 1.1 has twelve tasks:
+Version 1.1 has 48 tasks: 12 in each engineering category.
 
-| Task | Agent work | Pass gate |
-|---|---|---|
-| `deepee-repair-001` | Repair rollover-unsafe C scheduler code | Protected API + native C tests |
-| `deepee-repair-002` | Repair a wrapped byte ring buffer | Protected API + native C tests |
-| `deepee-repair-003` | Repair overflow-unsafe ADC scaling | Protected API + native C tests |
-| `deepee-fw-001` | Complete an ESP32-S2 I²C recovery policy | Native C tests + PlatformIO build |
-| `deepee-fw-002` | Implement SHT3x CRC and measurement decoding | Native C tests + PlatformIO build |
-| `deepee-fw-003` | Implement BME280 integer temperature compensation | Native C tests + PlatformIO build |
-| `deepee-fw-004` | Implement Modbus RTU CRC-16 | Native C tests + PlatformIO build |
-| `deepee-fw-005` | Decode signed MCP9808 temperature registers | Native C tests + PlatformIO build |
-| `deepee-sch-001` | Review and repair a broken KiCad schematic | Fixed component/net contract + ERC |
-| `deepee-pcb-001` | Finish routing an nRF24L01 adapter | Fixed footprint/pad contract + DRC |
-| `deepee-sch-002` | Design an MCP9808 breakout schematic from scratch | Exported netlist contract + ERC |
-| `deepee-pcb-002` | Design and route the breakout PCB from scratch | Footprint/pad/outline contract + DRC |
+| Category | Task IDs | Topics | Pass gate |
+|---|---|---|---|
+| Firmware | `deepee-fw-001`–`012` | I²C recovery; SHT3x, BME280, MCP9808, INA219, BMP280, ADS1115, DS18B20, SCD4x, PCA9685, and MAX31855 drivers; Modbus CRC | Protected API + native C tests + PlatformIO build |
+| Code repair | `deepee-repair-001`–`012` | Scheduler rollover, ring buffers, ADC scaling, SLIP, MQTT, UTF-8, CBOR, PPP FCS, HTTP chunks, Base64, Modbus CRC, and wrap-safe tick timing | Protected API + native C tests |
+| Schematics | `deepee-sch-001`–`012` | Power-input repair, MCP9808, INA219, ADS1115, BMP280, AP2112, USB-C sink, RS-485, CAN, I²C level shifting, microSD, and NE555 | Exact component/pin-net contract + exported netlist + ERC |
+| PCB | `deepee-pcb-001`–`012` | nRF24L01, MCP9808, and the same ten researched interface circuits used by the schematic set | Exact footprint/pad/outline contract + fully routed nets + DRC |
 
 The tasks are compact adaptations of real bug reports, open-source boards, official KiCad QA material, and published breakout use cases. Provenance is recorded in each task's `SOURCE.md` and summarized in [docs/TASK_SOURCES.md](docs/TASK_SOURCES.md).
 

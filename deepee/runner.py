@@ -183,6 +183,7 @@ def _containerize_command(command: Any, container: Dict[str, Any], run_dir: Path
         "run",
         "--rm",
         "--init",
+        "--interactive",
         "--network",
         str(container.get("network", "bridge")),
         "--cpus",

@@ -1,0 +1,2 @@
+required:
+- firmware/src/utf8_decode.c

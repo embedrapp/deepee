@@ -1,0 +1,5 @@
+required:
+- artifacts/firmware/include/scd4x_measurement.h
+- artifacts/firmware/src/scd4x_measurement.c
+- artifacts/firmware/src/main.cpp
+- artifacts/firmware/platformio.ini

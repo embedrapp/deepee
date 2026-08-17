@@ -1,0 +1,119 @@
+id: deepee-sch-011
+suite: schematic-design
+difficulty: hard
+timeout_minutes: 90
+required_tools:
+- kicad-cli
+submission_paths:
+- artifacts/microsd-spi-adapter.kicad_sch
+required_artifacts:
+- path: artifacts/microsd-spi-adapter.kicad_sch
+  kind: file
+- path: artifacts/microsd-spi-adapter.kicad_pro
+  kind: file
+checks:
+- type: artifact_presence
+  name: completed_schematic_exists
+- type: starter_integrity
+  name: project_rules_unchanged
+  protected_globs:
+  - artifacts/microsd-spi-adapter.kicad_pro
+- type: kicad_schematic_structure
+  name: component_and_net_contract
+  schematic: artifacts/microsd-spi-adapter.kicad_sch
+  min_symbols: 7
+  min_wires: 0
+  exact_references: true
+  components:
+  - reference: J1
+    value: Micro_SD_Card
+    footprint: Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5
+    library: Connector:Micro_SD_Card
+  - reference: R1
+    value: 47k
+    footprint: Resistor_SMD:R_0603_1608Metric
+    library: Device:R
+  - reference: R2
+    value: 47k
+    footprint: Resistor_SMD:R_0603_1608Metric
+    library: Device:R
+  - reference: R3
+    value: 47k
+    footprint: Resistor_SMD:R_0603_1608Metric
+    library: Device:R
+  - reference: C1
+    value: 100nF
+    footprint: Capacitor_SMD:C_0603_1608Metric
+    library: Device:C
+  - reference: C2
+    value: 10uF
+    footprint: Capacitor_SMD:C_0805_2012Metric
+    library: Device:C
+  - reference: J2
+    value: Conn_01x06
+    footprint: Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical
+    library: Connector_Generic:Conn_01x06
+  required_nets:
+  - DAT2
+  - SD_CS
+  - MOSI
+  - 3V3
+  - SCK
+  - GND
+  - MISO
+  - DAT1
+- type: kicad_netlist_contract
+  name: pin_connectivity
+  schematic: artifacts/microsd-spi-adapter.kicad_sch
+  exact_references: true
+  components:
+  - reference: J1
+    value: Micro_SD_Card
+    footprint: Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5
+  - reference: R1
+    value: 47k
+    footprint: Resistor_SMD:R_0603_1608Metric
+  - reference: R2
+    value: 47k
+    footprint: Resistor_SMD:R_0603_1608Metric
+  - reference: R3
+    value: 47k
+    footprint: Resistor_SMD:R_0603_1608Metric
+  - reference: C1
+    value: 100nF
+    footprint: Capacitor_SMD:C_0603_1608Metric
+  - reference: C2
+    value: 10uF
+    footprint: Capacitor_SMD:C_0805_2012Metric
+  - reference: J2
+    value: Conn_01x06
+    footprint: Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical
+  pin_nets:
+    J1.1: DAT2
+    J1.2: SD_CS
+    J1.3: MOSI
+    J1.4: 3V3
+    J1.5: SCK
+    J1.6: GND
+    J1.7: MISO
+    J1.8: DAT1
+    J1.SH: GND
+    R1.1: 3V3
+    R1.2: SD_CS
+    R2.1: 3V3
+    R2.2: DAT1
+    R3.1: 3V3
+    R3.2: DAT2
+    C1.1: 3V3
+    C1.2: GND
+    C2.1: 3V3
+    C2.2: GND
+    J2.1: 3V3
+    J2.2: GND
+    J2.3: SD_CS
+    J2.4: MOSI
+    J2.5: MISO
+    J2.6: SCK
+- type: kicad_erc
+  name: clean_erc
+  schematic: artifacts/microsd-spi-adapter.kicad_sch

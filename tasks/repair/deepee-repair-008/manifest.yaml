@@ -1,0 +1,27 @@
+id: deepee-repair-008
+suite: repair
+difficulty: hard
+timeout_minutes: 45
+required_tools:
+- gcc
+submission_paths:
+- firmware/src/ppp_fcs.c
+required_artifacts:
+- path: firmware/src/ppp_fcs.c
+  kind: file
+checks:
+- type: artifact_presence
+  name: repaired_ppp_fcs_exists
+- type: starter_integrity
+  name: ppp_fcs_contract_unchanged
+  protected_globs:
+  - firmware/src/ppp_fcs.h
+  - firmware/Makefile
+- type: c_unit_tests
+  name: ppp_fcs_behavior
+  sources:
+  - firmware/src/ppp_fcs.c
+  test_sources:
+  - verifier/test_ppp_fcs.c
+  include_dirs:
+  - firmware/src

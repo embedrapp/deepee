@@ -11,4 +11,4 @@ Complete `src/i2c_recovery.c` using the protected API:
 
 The protected `main.cpp` performs the documented recovery action by switching the bus to 1 MHz and back to 400 kHz. Do not change `main.cpp`, `i2c_recovery.h`, or `platformio.ini`.
 
-Submit the completed C file in place. It must pass verifier-owned native tests and the ESP32-S2 PlatformIO build.
+Submit the completed C file in place. It must satisfy the protected API and build for the ESP32-S2 PlatformIO target.

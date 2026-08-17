@@ -1,0 +1,27 @@
+id: deepee-repair-006
+suite: repair
+difficulty: hard
+timeout_minutes: 45
+required_tools:
+- gcc
+submission_paths:
+- firmware/src/utf8_decode.c
+required_artifacts:
+- path: firmware/src/utf8_decode.c
+  kind: file
+checks:
+- type: artifact_presence
+  name: repaired_utf8_decode_exists
+- type: starter_integrity
+  name: utf8_decode_contract_unchanged
+  protected_globs:
+  - firmware/src/utf8_decode.h
+  - firmware/Makefile
+- type: c_unit_tests
+  name: utf8_decode_behavior
+  sources:
+  - firmware/src/utf8_decode.c
+  test_sources:
+  - verifier/test_utf8_decode.c
+  include_dirs:
+  - firmware/src

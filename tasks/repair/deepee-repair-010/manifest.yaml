@@ -1,0 +1,27 @@
+id: deepee-repair-010
+suite: repair
+difficulty: hard
+timeout_minutes: 45
+required_tools:
+- gcc
+submission_paths:
+- firmware/src/base64_decode.c
+required_artifacts:
+- path: firmware/src/base64_decode.c
+  kind: file
+checks:
+- type: artifact_presence
+  name: repaired_base64_decode_exists
+- type: starter_integrity
+  name: base64_decode_contract_unchanged
+  protected_globs:
+  - firmware/src/base64_decode.h
+  - firmware/Makefile
+- type: c_unit_tests
+  name: base64_decode_behavior
+  sources:
+  - firmware/src/base64_decode.c
+  test_sources:
+  - verifier/test_base64_decode.c
+  include_dirs:
+  - firmware/src

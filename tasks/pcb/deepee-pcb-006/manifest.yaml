@@ -1,0 +1,67 @@
+id: deepee-pcb-006
+suite: pcb
+difficulty: hard
+timeout_minutes: 120
+required_tools:
+- kicad-cli
+submission_paths:
+- artifacts/ap2112-3v3-regulator.kicad_pcb
+required_artifacts:
+- path: artifacts/ap2112-3v3-regulator.kicad_pcb
+  kind: file
+- path: artifacts/ap2112-3v3-regulator.kicad_pro
+  kind: file
+checks:
+- type: artifact_presence
+  name: completed_board_exists
+- type: starter_integrity
+  name: project_rules_unchanged
+  protected_globs:
+  - artifacts/ap2112-3v3-regulator.kicad_pro
+- type: kicad_pcb_structure
+  name: layout_contract
+  board: artifacts/ap2112-3v3-regulator.kicad_pcb
+  copper_layers: 2
+  expected_width_mm: 60
+  expected_height_mm: 40
+  tolerance_mm: 0.05
+  min_footprints: 5
+  min_tracks: 3
+  exact_references: true
+  components:
+  - reference: U1
+    value: AP2112K-3.3
+    footprint: Package_TO_SOT_SMD:SOT-23-5
+  - reference: C1
+    value: 1uF
+    footprint: Capacitor_SMD:C_0805_2012Metric
+  - reference: C2
+    value: 1uF
+    footprint: Capacitor_SMD:C_0805_2012Metric
+  - reference: R1
+    value: 100k
+    footprint: Resistor_SMD:R_0603_1608Metric
+  - reference: J1
+    value: Conn_01x03
+    footprint: Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical
+  pin_nets:
+    U1.1: VIN
+    U1.2: GND
+    U1.3: VIN
+    U1.5: 3V3
+    C1.1: VIN
+    C1.2: GND
+    C2.1: 3V3
+    C2.2: GND
+    R1.1: VIN
+    R1.2: GND
+    J1.1: VIN
+    J1.2: GND
+    J1.3: 3V3
+  required_routed_nets:
+  - VIN
+  - GND
+  - 3V3
+- type: kicad_drc
+  name: clean_drc
+  board: artifacts/ap2112-3v3-regulator.kicad_pcb

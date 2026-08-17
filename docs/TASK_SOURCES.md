@@ -20,3 +20,14 @@ Tasks were selected from real public engineering evidence, then reduced to bound
 The task structure follows two useful findings from recent hardware-agent benchmarks: use real open-source design contexts and score completed boards with the EDA engine. PCBWorld reports 679 real open-source KiCad boards and evaluates connectivity/DRC from the completed board file; DeepEE adopts that engine-grounded feasibility principle but keeps version 1.1 binary and much smaller.
 
 Direct sources are linked in each task's `SOURCE.md`.
+
+The expanded assignments add official source material for INA219, BMP280,
+ADS1115, DS18B20, SCD4x, PCA9685, MAX31855, AP2112, USB Type-C, MAX3485,
+SN65HVD230, PCA9306, microSD, and NE555, plus the RFC/OASIS definitions for
+SLIP, MQTT Remaining Length, UTF-8, CBOR, PPP FCS, HTTP chunking, and Base64.
+Each exact primary-source URL is recorded beside the task it supports.
+
+The [comma.ai harness tester challenge](https://github.com/commaai/harness_tester_challenge)
+informed the presentation pattern: start from a believable product need, expose
+native schematic/PCB/firmware artifacts, and make each failure consequential to
+operation. No comma.ai design file or challenge answer is copied into these tasks.

@@ -1,0 +1,48 @@
+id: deepee-fw-011
+suite: firmware
+difficulty: hard
+timeout_minutes: 60
+required_tools:
+- gcc
+- pio
+submission_paths:
+- artifacts/firmware/src/pca9685_timing.c
+required_artifacts:
+- path: artifacts/firmware/platformio.ini
+  kind: file
+- path: artifacts/firmware/include/pca9685_timing.h
+  kind: file
+- path: artifacts/firmware/src/pca9685_timing.c
+  kind: file
+- path: artifacts/firmware/src/main.cpp
+  kind: file
+checks:
+- type: artifact_presence
+  name: pca9685_timing_project_complete
+- type: starter_integrity
+  name: pca9685_timing_integration_unchanged
+  protected_globs:
+  - artifacts/firmware/include/pca9685_timing.h
+  - artifacts/firmware/src/main.cpp
+  - artifacts/firmware/platformio.ini
+- type: c_unit_tests
+  name: pca9685_timing_behavior
+  sources:
+  - artifacts/firmware/src/pca9685_timing.c
+  test_sources:
+  - verifier/test_pca9685_timing.c
+  include_dirs:
+  - artifacts/firmware/include
+- type: firmware_build
+  name: pca9685_timing_esp32_s2_builds
+  root: artifacts/firmware
+  allowed_build_systems:
+  - platformio
+  required_files:
+  - platformio.ini
+  - src/main.cpp
+  - src/pca9685_timing.c
+  - include/pca9685_timing.h
+  output_globs:
+  - .pio/build/**/*.elf
+  timeout_seconds: 600

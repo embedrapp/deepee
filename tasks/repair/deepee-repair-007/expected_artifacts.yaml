@@ -1,0 +1,2 @@
+required:
+- firmware/src/cbor_uint.c

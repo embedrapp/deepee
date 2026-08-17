@@ -8,4 +8,4 @@ Fix `firmware/src/scheduler.c` so it follows the protected API contract:
 - `scheduler_advance` must advance from the prior deadline by whole periods until the next deadline is strictly in the future, preserving cadence after late execution;
 - a zero period is invalid and does not need to be supported.
 
-Do not change `scheduler.h` or the Makefile. Submit the repaired C file in place. The task passes only if verifier-owned native C tests pass.
+Do not change `scheduler.h` or the Makefile. Submit the repaired C file in place and preserve the documented API behavior.
