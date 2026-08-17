@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "deepee-bench"
-version = "1.1.0"
+version = "1.2.0"
 description = "DeepEE benchmark harness for embedded engineering agents"
 readme = "README.md"
 requires-python = ">=3.9"

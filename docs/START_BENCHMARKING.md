@@ -39,7 +39,7 @@ Give the generated `prompt_bundle.md` and run directory to the agent. After it f
 
 ```bash
 deepee verify \
-  --container-image deepee-verifier:1.1.0 \
+  --container-image deepee-verifier:1.2.0 \
   --task deepee-sch-002 \
   --run-dir '<printed-run-directory>' \
   --output results/scored/manual-sch-002.json
