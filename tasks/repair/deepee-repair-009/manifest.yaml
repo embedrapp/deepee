@@ -9,6 +9,23 @@ submission_paths:
 required_artifacts:
 - path: firmware/src/http_chunk_size.c
   kind: file
+contract_version: '2.0'
+requirements:
+- id: repaired-http-chunk-size-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: repaired_http_chunk_size_exists
+- id: http-chunk-size-contract-unchanged
+  description: Preserve the declared protected starter interface and project files.
+  layer: integrity
+  critical: true
+  check: http_chunk_size_contract_unchanged
+- id: http-chunk-size-behavior
+  description: Satisfy the verifier-owned behavioral and boundary test vectors.
+  layer: behavior
+  critical: true
+  check: http_chunk_size_behavior
 checks:
 - type: artifact_presence
   name: repaired_http_chunk_size_exists

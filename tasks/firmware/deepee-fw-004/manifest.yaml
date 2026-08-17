@@ -9,6 +9,28 @@ required_artifacts:
   - {path: artifacts/firmware/include/modbus_crc.h, kind: file}
   - {path: artifacts/firmware/src/modbus_crc.c, kind: file}
   - {path: artifacts/firmware/src/main.cpp, kind: file}
+contract_version: '2.0'
+requirements:
+- id: modbus-project-complete
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: modbus_project_complete
+- id: modbus-integration-unchanged
+  description: Preserve the declared protected starter interface and project files.
+  layer: integrity
+  critical: true
+  check: modbus_integration_unchanged
+- id: modbus-rtu-crc-contract
+  description: Satisfy the verifier-owned behavioral and boundary test vectors.
+  layer: behavior
+  critical: true
+  check: modbus_rtu_crc_contract
+- id: modbus-esp32-s2-builds
+  description: Build the submitted firmware for the declared target without errors.
+  layer: build
+  critical: true
+  check: modbus_esp32_s2_builds
 checks:
   - type: artifact_presence
     name: modbus_project_complete

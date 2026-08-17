@@ -9,6 +9,23 @@ submission_paths:
 required_artifacts:
 - path: firmware/src/ppp_fcs.c
   kind: file
+contract_version: '2.0'
+requirements:
+- id: repaired-ppp-fcs-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: repaired_ppp_fcs_exists
+- id: ppp-fcs-contract-unchanged
+  description: Preserve the declared protected starter interface and project files.
+  layer: integrity
+  critical: true
+  check: ppp_fcs_contract_unchanged
+- id: ppp-fcs-behavior
+  description: Satisfy the verifier-owned behavioral and boundary test vectors.
+  layer: behavior
+  critical: true
+  check: ppp_fcs_behavior
 checks:
 - type: artifact_presence
   name: repaired_ppp_fcs_exists

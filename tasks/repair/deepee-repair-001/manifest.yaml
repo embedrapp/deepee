@@ -6,6 +6,23 @@ required_tools: [gcc]
 submission_paths: [firmware/src/scheduler.c]
 required_artifacts:
   - {path: firmware/src/scheduler.c, kind: file}
+contract_version: '2.0'
+requirements:
+- id: repaired-source-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: repaired_source_exists
+- id: scheduler-contract-unchanged
+  description: Preserve the declared protected starter interface and project files.
+  layer: integrity
+  critical: true
+  check: scheduler_contract_unchanged
+- id: rollover-safe-scheduler-behavior
+  description: Satisfy the verifier-owned behavioral and boundary test vectors.
+  layer: behavior
+  critical: true
+  check: rollover_safe_scheduler_behavior
 checks:
   - type: artifact_presence
     name: repaired_source_exists

@@ -9,6 +9,23 @@ submission_paths:
 required_artifacts:
 - path: firmware/src/modbus_crc.c
   kind: file
+contract_version: '2.0'
+requirements:
+- id: repaired-modbus-crc-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: repaired_modbus_crc_exists
+- id: modbus-crc-contract-unchanged
+  description: Preserve the declared protected starter interface and project files.
+  layer: integrity
+  critical: true
+  check: modbus_crc_contract_unchanged
+- id: modbus-crc-behavior
+  description: Satisfy the verifier-owned behavioral and boundary test vectors.
+  layer: behavior
+  critical: true
+  check: modbus_crc_behavior
 checks:
 - type: artifact_presence
   name: repaired_modbus_crc_exists

@@ -9,6 +9,23 @@ submission_paths:
 required_artifacts:
 - path: firmware/src/cbor_uint.c
   kind: file
+contract_version: '2.0'
+requirements:
+- id: repaired-cbor-uint-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: repaired_cbor_uint_exists
+- id: cbor-uint-contract-unchanged
+  description: Preserve the declared protected starter interface and project files.
+  layer: integrity
+  critical: true
+  check: cbor_uint_contract_unchanged
+- id: cbor-uint-behavior
+  description: Satisfy the verifier-owned behavioral and boundary test vectors.
+  layer: behavior
+  critical: true
+  check: cbor_uint_behavior
 checks:
 - type: artifact_presence
   name: repaired_cbor_uint_exists

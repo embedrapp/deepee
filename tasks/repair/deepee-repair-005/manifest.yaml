@@ -9,6 +9,23 @@ submission_paths:
 required_artifacts:
 - path: firmware/src/mqtt_remaining_length.c
   kind: file
+contract_version: '2.0'
+requirements:
+- id: repaired-mqtt-remaining-length-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: repaired_mqtt_remaining_length_exists
+- id: mqtt-remaining-length-contract-unchanged
+  description: Preserve the declared protected starter interface and project files.
+  layer: integrity
+  critical: true
+  check: mqtt_remaining_length_contract_unchanged
+- id: mqtt-remaining-length-behavior
+  description: Satisfy the verifier-owned behavioral and boundary test vectors.
+  layer: behavior
+  critical: true
+  check: mqtt_remaining_length_behavior
 checks:
 - type: artifact_presence
   name: repaired_mqtt_remaining_length_exists

@@ -6,6 +6,23 @@ required_tools: [kicad-cli]
 submission_paths: [artifacts/nrf24-adapter.kicad_pcb]
 required_artifacts:
   - {path: artifacts/nrf24-adapter.kicad_pcb, kind: file}
+contract_version: '2.0'
+requirements:
+- id: completed-board-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: completed_board_exists
+- id: adapter-contract
+  description: Satisfy the declared native PCB structure and routing contract.
+  layer: physical
+  critical: true
+  check: adapter_contract
+- id: clean-drc
+  description: Pass KiCad design-rules checking without errors or warnings.
+  layer: manufacturability
+  critical: true
+  check: clean_drc
 checks:
   - type: artifact_presence
     name: completed_board_exists

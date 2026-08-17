@@ -9,6 +9,23 @@ submission_paths:
 required_artifacts:
 - path: firmware/src/base64_decode.c
   kind: file
+contract_version: '2.0'
+requirements:
+- id: repaired-base64-decode-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: repaired_base64_decode_exists
+- id: base64-decode-contract-unchanged
+  description: Preserve the declared protected starter interface and project files.
+  layer: integrity
+  critical: true
+  check: base64_decode_contract_unchanged
+- id: base64-decode-behavior
+  description: Satisfy the verifier-owned behavioral and boundary test vectors.
+  layer: behavior
+  critical: true
+  check: base64_decode_behavior
 checks:
 - type: artifact_presence
   name: repaired_base64_decode_exists

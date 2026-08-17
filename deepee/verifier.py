@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -20,6 +21,98 @@ VERSION_COMMANDS = {
     "make": ["make", "--version"],
     "platformio": ["pio", "--version"],
 }
+
+
+def _stable_fragment(value: Any) -> str:
+    fragment = re.sub(r"[^a-z0-9]+", "-", str(value).lower()).strip("-")
+    return fragment or "check"
+
+
+def _requirement_results(task, checks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    by_name = {str(item.get("name") or item.get("type")): item for item in checks}
+    declared = task.manifest.get("requirements") or []
+    if not declared:
+        declared = [
+            {
+                "id": _stable_fragment(item.get("name") or item.get("type")),
+                "description": str(item.get("name") or item.get("type")),
+                "layer": "deliverable",
+                "critical": True,
+                "check": str(item.get("name") or item.get("type")),
+            }
+            for item in checks
+        ]
+
+    results: List[Dict[str, Any]] = []
+    for requirement in declared:
+        requirement_id = str(requirement["id"])
+        check_name = str(requirement["check"])
+        check_result = by_name.get(check_name) or {
+            "passed": False,
+            "score": 0.0,
+            "message": f"Mapped check result is missing: {check_name}",
+            "details": {},
+        }
+        subrequirements = []
+        for subcheck in (check_result.get("details") or {}).get("subchecks") or []:
+            name = str(subcheck.get("name") or "check")
+            evidence = {
+                key: value
+                for key, value in subcheck.items()
+                if key not in {"name", "passed"}
+            }
+            subrequirements.append({
+                "id": f"{requirement_id}.{_stable_fragment(name)}",
+                "name": name,
+                "passed": bool(subcheck.get("passed")),
+                "evidence": evidence,
+            })
+        results.append({
+            "id": requirement_id,
+            "description": str(requirement.get("description") or requirement_id),
+            "layer": str(requirement.get("layer") or "deliverable"),
+            "critical": bool(requirement.get("critical", True)),
+            "check": check_name,
+            "passed": bool(check_result.get("passed")),
+            "score": float(check_result.get("score") or 0.0),
+            "message": str(check_result.get("message") or ""),
+            "subrequirements": subrequirements,
+        })
+    return results
+
+
+def _score_vector(requirements: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    vector: Dict[str, Dict[str, Any]] = {}
+    for layer in sorted({str(item["layer"]) for item in requirements}):
+        items = [item for item in requirements if item["layer"] == layer]
+        passed = sum(1 for item in items if item["passed"])
+        vector[layer] = {
+            "passed": passed,
+            "total": len(items),
+            "pass_rate": passed / len(items) if items else 0.0,
+        }
+    return vector
+
+
+def _decision_hash(task_id: str, requirements: List[Dict[str, Any]]) -> str:
+    decision = {
+        "task_id": task_id,
+        "requirements": [
+            {
+                "id": item["id"],
+                "critical": item["critical"],
+                "passed": item["passed"],
+                "score": item["score"],
+                "subrequirements": [
+                    {"id": subitem["id"], "passed": subitem["passed"]}
+                    for subitem in item["subrequirements"]
+                ],
+            }
+            for item in requirements
+        ],
+    }
+    encoded = json.dumps(decision, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def _hash_file(path: Path, digest: "hashlib._Hash", label: str) -> None:
@@ -165,10 +258,19 @@ def verify_task(
     if automated_run and run_metadata.get("status") != "completed":
         failures.append("agent_run_completed")
     failures = list(dict.fromkeys(failures))
-    passed = bool(results) and not failures
+    requirements = _requirement_results(task, results)
+    critical_requirement_failures = [
+        item["id"] for item in requirements if item["critical"] and not item["passed"]
+    ]
+    passed = bool(results) and not failures and not critical_requirement_failures
+    quality_score = (
+        sum(1.0 for item in requirements if item["passed"]) / len(requirements)
+        if requirements
+        else 0.0
+    )
 
     payload: Dict[str, Any] = {
-        "schema_version": "1.0",
+        "schema_version": "2.0",
         "task_id": task.id,
         "suite": task.suite,
         "agent": {
@@ -181,9 +283,13 @@ def verify_task(
         },
         "run_dir": str(run_dir),
         "score": 1.0 if passed else 0.0,
+        "quality_score": quality_score,
         "passed": passed,
         "publishable": bool(os.environ.get("DEEPEE_VERIFICATION_CONTAINER") == "1" and not allow_missing_tools),
         "failures": failures,
+        "critical_requirement_failures": critical_requirement_failures,
+        "requirements": requirements,
+        "score_vector": _score_vector(requirements),
         "checks": results,
         "metadata": {
             "verified_at": utc_timestamp(),
@@ -194,6 +300,7 @@ def verify_task(
                 "benchmark": _benchmark_hash(task.path.parents[2]),
                 "artifacts": _artifacts_hash(run_dir),
                 "submission": _submission_hash(task, run_dir),
+                "decision": _decision_hash(task.id, requirements),
             },
             "benchmark_task_ids": sorted(item.id for item in iter_tasks(task.path.parents[2])),
             "tool_versions": _tool_versions(),

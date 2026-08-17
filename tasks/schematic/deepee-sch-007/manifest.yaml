@@ -11,6 +11,33 @@ required_artifacts:
   kind: file
 - path: artifacts/usb-c-5v-sink.kicad_pro
   kind: file
+contract_version: '2.0'
+requirements:
+- id: completed-schematic-exists
+  description: Produce every required submission artifact.
+  layer: deliverable
+  critical: true
+  check: completed_schematic_exists
+- id: project-rules-unchanged
+  description: Preserve the declared protected starter interface and project files.
+  layer: integrity
+  critical: true
+  check: project_rules_unchanged
+- id: component-and-net-contract
+  description: Satisfy the declared native schematic component and net contract.
+  layer: logical
+  critical: true
+  check: component_and_net_contract
+- id: pin-connectivity
+  description: Satisfy the independently exported electrical netlist contract.
+  layer: logical
+  critical: true
+  check: pin_connectivity
+- id: clean-erc
+  description: Pass KiCad electrical-rules checking without errors or warnings.
+  layer: electrical
+  critical: true
+  check: clean_erc
 checks:
 - type: artifact_presence
   name: completed_schematic_exists
