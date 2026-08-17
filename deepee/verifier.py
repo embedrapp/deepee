@@ -318,6 +318,7 @@ def verify_task(
                 "prompt_hash": run_metadata.get("prompt_hash"),
                 "wall_time_seconds": run_metadata.get("wall_time_seconds"),
                 "usage": run_metadata.get("usage", {}),
+                "cost_estimate": run_metadata.get("cost_estimate", {}),
                 "returncode": run_metadata.get("returncode"),
             },
         },
