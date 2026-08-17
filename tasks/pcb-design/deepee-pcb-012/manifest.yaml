@@ -101,6 +101,16 @@ checks:
   - 5V
   - CTRL
   - DISCHARGE
+  track_width_constraints:
+    - name: all-required-nets
+      nets:
+        - GND
+        - TIMING
+        - OUT
+        - 5V
+        - CTRL
+        - DISCHARGE
+      minimum_mm: 0.25
 - type: kicad_drc
   name: clean_drc
   board: artifacts/ne555-astable.kicad_pcb

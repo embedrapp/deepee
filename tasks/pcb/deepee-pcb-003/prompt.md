@@ -16,3 +16,5 @@
     outline findings. Save the finished board as
     `artifacts/ina219-current-monitor.kicad_pcb`; it must pass KiCad DRC with no errors
     or warnings.
+
+Use routed copper at least 0.25 mm wide on every named net.

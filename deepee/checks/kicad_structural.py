@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from math import atan2, hypot, pi
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
@@ -203,6 +204,78 @@ def _net_name(node: List[Any], legacy_nets: Dict[str, str]) -> str:
     return atom(net, 2) or legacy_nets.get(atom(net, 1), atom(net, 1))
 
 
+def _float_child(node: List[Any], name: str) -> Optional[float]:
+    value = atom(child(node, name), 1)
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _copper_item_length(item: List[Any]) -> float:
+    start = _xy(child(item, "start"))
+    end = _xy(child(item, "end"))
+    mid = _xy(child(item, "mid"))
+    if not start or not end:
+        return 0.0
+    if not mid:
+        return hypot(end[0] - start[0], end[1] - start[1])
+
+    # KiCad copper arcs are represented by start/mid/end points.  Compute the
+    # circumcircle and the sweep containing the midpoint; fall back to the
+    # polyline length for a degenerate three-point arc.
+    ax, ay = start
+    bx, by = mid
+    cx, cy = end
+    determinant = 2.0 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by))
+    if abs(determinant) < 1e-12:
+        return hypot(bx - ax, by - ay) + hypot(cx - bx, cy - by)
+    ux = (
+        (ax * ax + ay * ay) * (by - cy)
+        + (bx * bx + by * by) * (cy - ay)
+        + (cx * cx + cy * cy) * (ay - by)
+    ) / determinant
+    uy = (
+        (ax * ax + ay * ay) * (cx - bx)
+        + (bx * bx + by * by) * (ax - cx)
+        + (cx * cx + cy * cy) * (bx - ax)
+    ) / determinant
+    radius = hypot(ax - ux, ay - uy)
+    angles = [atan2(y - uy, x - ux) % (2.0 * pi) for x, y in (start, mid, end)]
+    start_angle, mid_angle, end_angle = angles
+    counterclockwise_sweep = (end_angle - start_angle) % (2.0 * pi)
+    mid_counterclockwise = (mid_angle - start_angle) % (2.0 * pi)
+    sweep = counterclockwise_sweep if mid_counterclockwise <= counterclockwise_sweep else 2.0 * pi - counterclockwise_sweep
+    return radius * sweep
+
+
+def _routing_metrics(items: Iterable[List[Any]], legacy_nets: Dict[str, str]) -> Dict[str, Dict[str, Any]]:
+    metrics: Dict[str, Dict[str, Any]] = {}
+    for item in items:
+        name = _net_name(item, legacy_nets)
+        if not name:
+            continue
+        entry = metrics.setdefault(name, {"length_mm": 0.0, "widths_mm": [], "item_count": 0})
+        entry["length_mm"] += _copper_item_length(item)
+        width = _float_child(item, "width")
+        if width is not None:
+            entry["widths_mm"].append(width)
+        entry["item_count"] += 1
+    for entry in metrics.values():
+        entry["length_mm"] = round(float(entry["length_mm"]), 6)
+        entry["widths_mm"] = sorted(round(float(value), 6) for value in entry["widths_mm"])
+    return metrics
+
+
+def _matching_metric_names(metrics: Dict[str, Dict[str, Any]], patterns: Iterable[Any]) -> List[str]:
+    return sorted({
+        name
+        for pattern in patterns
+        for name in metrics
+        if re.fullmatch(str(pattern), name, re.IGNORECASE)
+    })
+
+
 def run_kicad_pcb_structure(check: Dict[str, Any], task, run_dir: Path, options: Dict[str, Any]) -> Dict[str, Any]:
     root_dir = resolve_run_path(run_dir, str(check.get("root", "artifacts")))
     board = resolve_run_path(run_dir, str(check["board"])) if check.get("board") else _first_file(root_dir, ".kicad_pcb")
@@ -215,6 +288,7 @@ def run_kicad_pcb_structure(check: Dict[str, Any], task, run_dir: Path, options:
 
     footprints = children(design, "footprint")
     segments = children(design, "segment")
+    arcs = children(design, "arc")
     vias = children(design, "via")
     zones = children(design, "zone")
     nets = {atom(item, 1): atom(item, 2) for item in children(design, "net")}
@@ -244,12 +318,13 @@ def run_kicad_pcb_structure(check: Dict[str, Any], task, run_dir: Path, options:
                     if reference:
                         pin_nets[f"{reference}.{atom(pad, 1)}"] = name
 
-    routed_names = {_net_name(item, nets) for item in segments + vias if _net_name(item, nets)}
+    routed_names = {_net_name(item, nets) for item in segments + arcs + vias if _net_name(item, nets)}
     zone_names = {atom(child(zone, "net_name")) or _net_name(zone, nets) for zone in zones}
     route_evidence = routed_names | zone_names
     net_names = set(nets.values()) | set(pad_nets) | route_evidence
     keepouts = [zone for zone in zones if child(zone, "keepout")]
     dimensions = _outline_dimensions(design)
+    routing_metrics = _routing_metrics(segments + arcs, nets)
 
     subchecks = [
         {"name": "copper_layer_count", "passed": len(copper_layers) == int(check.get("copper_layers", 2)), "actual": copper_layers},
@@ -288,6 +363,37 @@ def run_kicad_pcb_structure(check: Dict[str, Any], task, run_dir: Path, options:
         has_route = any(name in route_evidence for name in matching_nets)
         subchecks.append({"name": f"routed_net:{pattern}", "passed": bool(matching_nets and has_pad and has_route), "matched": matching_nets, "has_pad": has_pad, "has_route": has_route})
 
+    for constraint in check.get("track_width_constraints") or []:
+        patterns = constraint.get("nets") or [constraint.get("net")]
+        names = _matching_metric_names(routing_metrics, [item for item in patterns if item])
+        minimum = float(constraint["minimum_mm"])
+        widths = [width for name in names for width in routing_metrics[name]["widths_mm"]]
+        label = str(constraint.get("name") or ",".join(str(item) for item in patterns if item))
+        subchecks.append({
+            "name": f"track_width:{label}",
+            "passed": bool(names and widths and min(widths) + 1e-9 >= minimum),
+            "minimum_mm": minimum,
+            "matched_nets": names,
+            "actual_minimum_mm": min(widths) if widths else None,
+        })
+
+    for group in check.get("matched_length_groups") or []:
+        names = [str(name) for name in group.get("nets") or []]
+        lengths = {
+            name: routing_metrics.get(name, {}).get("length_mm")
+            for name in names
+        }
+        present_lengths = [float(value) for value in lengths.values() if value is not None]
+        maximum_skew = float(group["maximum_skew_mm"])
+        skew = max(present_lengths) - min(present_lengths) if len(present_lengths) == len(names) and names else None
+        subchecks.append({
+            "name": f"matched_length:{group.get('name') or ','.join(names)}",
+            "passed": bool(skew is not None and skew <= maximum_skew + 1e-9),
+            "maximum_skew_mm": maximum_skew,
+            "actual_skew_mm": round(skew, 6) if skew is not None else None,
+            "lengths_mm": lengths,
+        })
+
     return _finish(
         check,
         "kicad_pcb_structure",
@@ -297,9 +403,11 @@ def run_kicad_pcb_structure(check: Dict[str, Any], task, run_dir: Path, options:
             "dimensions": dimensions,
             "footprint_count": len(footprints),
             "segment_count": len(segments),
+            "arc_count": len(arcs),
             "via_count": len(vias),
             "net_count": len(net_names),
             "routed_nets": sorted(route_evidence),
+            "routing_metrics": routing_metrics,
             "components": component_records,
             "pin_nets": pin_nets,
         },

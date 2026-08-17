@@ -67,6 +67,15 @@ checks:
       J1.4: SCL
       J1.5: ALERT
     required_routed_nets: ["3V3", GND, SDA, SCL, ALERT]
+    track_width_constraints:
+      - name: all-required-nets
+        nets:
+          - 3V3
+          - GND
+          - SDA
+          - SCL
+          - ALERT
+        minimum_mm: 0.25
   - type: kicad_drc
     name: clean_drc
     board: artifacts/mcp9808-breakout.kicad_pcb

@@ -16,3 +16,5 @@
     outline findings. Save the finished board as
     `artifacts/usb-c-5v-sink.kicad_pcb`; it must pass KiCad DRC with no errors
     or warnings.
+
+Use routed copper at least 0.25 mm wide on every named net. Keep the total routed lengths of `USB_DP` and `USB_DM` within 1.0 mm of each other.

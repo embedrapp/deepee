@@ -21,3 +21,5 @@ Pad-to-net contract:
 Place and route the board using any valid geometry. Include a GND copper zone. Do not add or remove components or alter the outline dimensions.
 
 Submit `artifacts/mcp9808-breakout.kicad_pcb`. It must preserve the exact footprint/pad contract, connect every pad, and pass KiCad DRC with no errors or warnings. Placement and trace geometry are intentionally not compared with a golden board.
+
+Use routed copper at least 0.25 mm wide on every named net.

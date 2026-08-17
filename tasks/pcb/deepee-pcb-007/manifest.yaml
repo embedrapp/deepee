@@ -105,6 +105,23 @@ checks:
   - USB_DM
   - CC2
   - 5V
+  track_width_constraints:
+    - name: all-required-nets
+      nets:
+        - GND
+        - VBUS
+        - CC1
+        - USB_DP
+        - USB_DM
+        - CC2
+        - 5V
+      minimum_mm: 0.25
+  matched_length_groups:
+    - name: usb2-data-pair
+      nets:
+        - USB_DP
+        - USB_DM
+      maximum_skew_mm: 1.0
 - type: kicad_drc
   name: clean_drc
   board: artifacts/usb-c-5v-sink.kicad_pcb

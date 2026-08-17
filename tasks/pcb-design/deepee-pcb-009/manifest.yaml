@@ -101,6 +101,18 @@ checks:
   - CANL
   - CANH
   - RS
+  track_width_constraints:
+    - name: all-required-nets
+      nets:
+        - CAN_TX
+        - GND
+        - 3V3
+        - CAN_RX
+        - VREF
+        - CANL
+        - CANH
+        - RS
+      minimum_mm: 0.25
 - type: kicad_drc
   name: clean_drc
   board: artifacts/sn65hvd230-can.kicad_pcb
